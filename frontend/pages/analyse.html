@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Analysis - Vyapaar Vikash</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .business-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .business-type-option {
+      position: relative;
+    }
+    .business-type-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+    }
+    .business-type-option label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 10px;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      transition: var(--transition);
+      text-align: center;
+      background: var(--white);
+    }
+    .business-type-option label .icon { font-size: 1.6rem; }
+    .business-type-option input[type="radio"]:checked + label {
+      border-color: var(--orange);
+      background: var(--orange-light);
+      color: var(--orange);
+    }
+    .business-type-option label:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+    .other-desc-box {
+      margin-top: 10px;
+    }
+    @media (max-width: 600px) {
+      .business-type-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">🌱</div>
+        Vyapaar Vikash
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="analyze.html" class="active">Business Analysis</a></li>
+        <li><a href="advisor.html">AI Advisor</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+      </ul>
+      <a href="login.html" class="btn btn-outline btn-sm">Logout</a>
+    </div>
+  </nav>
+
+  <header class="page-analyze-header">
+    <div class="container">
+      <div class="step-indicator">
+        <div class="step">
+          <div class="step-num active">1</div>
+          <span class="step-name">Business Details</span>
+        </div>
+        <div class="step-sep"></div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <span class="step-name">Location & Finance</span>
+        </div>
+        <div class="step-sep"></div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <span class="step-name">Results & Report</span>
+        </div>
+      </div>
+      <h1>Analyze Your Business Idea</h1>
+      <p>Select your business type, fill in location, and get a hyper-local market analysis, financial report, SWOT, and matched government schemes.</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="analyze-layout">
+
+      <aside class="form-sidebar">
+        <div class="form-sidebar-header">Form Sections</div>
+        <nav class="form-sidebar-links">
+          <a href="#section-type" class="active">🏷️ Business Type</a>
+          <a href="#section-location">📍 Location</a>
+          <a href="#section-category">📋 Category</a>
+          <a href="#section-finance">💰 Financial Details</a>
+          <a href="#section-entrepreneur">👤 Entrepreneur Profile</a>
+        </nav>
+      </aside>
+
+      <main>
+        <form action="results-overview.html" method="GET" id="analyze-form">
+
+          <!-- SECTION 1: Business Type Selector -->
+          <div class="form-main" id="section-type" style="margin-bottom:24px;">
+            <div class="form-section">
+              <h2 class="form-section-title">🏷️ What Type of Business Do You Want to Start?</h2>
+              <p class="form-section-sub">Choose your business type from the list below. Select "Other" to describe your unique idea.</p>
+
+              <!-- Common Business Types as Radio Cards -->
+              <div class="business-type-grid">
+                <div class="business-type-option">
+                  <input type="radio" id="type_mobile" name="business_type" value="mobile_shop">
+                  <label for="type_mobile"><span class="icon">📱</span>Mobile Shop</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_grocery" name="business_type" value="grocery">
+                  <label for="type_grocery"><span class="icon">🛒</span>Grocery Store</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_dairy" name="business_type" value="dairy">
+                  <label for="type_dairy"><span class="icon">🐄</span>Dairy / Milk</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_bakery" name="business_type" value="bakery">
+                  <label for="type_bakery"><span class="icon">🍞</span>Bakery / Sweets</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_tailoring" name="business_type" value="tailoring">
+                  <label for="type_tailoring"><span class="icon">🧵</span>Tailoring / Garments</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_electronics" name="business_type" value="electronics_repair">
+                  <label for="type_electronics"><span class="icon">🔧</span>Electronics Repair</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_salon" name="business_type" value="salon">
+                  <label for="type_salon"><span class="icon">💇</span>Salon / Parlour</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_restaurant" name="business_type" value="restaurant">
+                  <label for="type_restaurant"><span class="icon">🍽️</span>Restaurant / Dhaba</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_agri" name="business_type" value="agriculture">
+                  <label for="type_agri"><span class="icon">🌾</span>Agriculture / Farming</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_handicraft" name="business_type" value="handicraft">
+                  <label for="type_handicraft"><span class="icon">🧶</span>Handicraft / Textile</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_transport" name="business_type" value="transport">
+                  <label for="type_transport"><span class="icon">🚛</span>Transport / Logistics</label>
+                </div>
+                <div class="business-type-option">
+                  <input type="radio" id="type_other" name="business_type" value="other">
+                  <label for="type_other"><span class="icon">✏️</span>Other (Describe)</label>
+                </div>
+              </div>
+              <p class="form-hint" style="margin-top:8px;">* Select the category that best fits your business idea.</p>
+
+              <!-- "Other" Description Box — always shown, required if "Other" selected -->
+              <div class="other-desc-box">
+                <label class="form-label" for="business_other_desc">If "Other", describe your business idea below:</label>
+                <textarea id="business_other_desc" name="business_other_desc" class="form-control" placeholder="Example: I want to start a small fish-processing unit near the river..."></textarea>
+                <p class="form-hint">Leave blank if you selected a category above.</p>
+              </div>
+
+              <div class="form-group mt-2">
+                <label class="form-label" for="business_name">Proposed Business Name <span class="required">*</span></label>
+                <input type="text" id="business_name" name="business_name" class="form-control" placeholder="E.g., Ravi Mobile Centre" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: Location -->
+          <div class="form-main" id="section-location" style="margin-bottom:24px;">
+            <div class="form-section">
+              <h2 class="form-section-title">📍 Business Location</h2>
+              <p class="form-section-sub">Your location is used to find real nearby competitors and analyze the local market within a 5–10 km radius.</p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="state">State / Union Territory <span class="required">*</span></label>
+                  <select id="state" name="state" class="form-control" required>
+                    <option value="" disabled selected>-- Select State / UT --</option>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Bihar">Bihar</option>
+                    <option value="Chhattisgarh">Chhattisgarh</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Haryana">Haryana</option>
+                    <option value="Himachal Pradesh">Himachal Pradesh</option>
+                    <option value="Jharkhand">Jharkhand</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Manipur">Manipur</option>
+                    <option value="Meghalaya">Meghalaya</option>
+                    <option value="Mizoram">Mizoram</option>
+                    <option value="Nagaland">Nagaland</option>
+                    <option value="Odisha">Odisha</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                    <option value="Sikkim">Sikkim</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Tripura">Tripura</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="Uttarakhand">Uttarakhand</option>
+                    <option value="West Bengal">West Bengal</option>
+                    <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                    <option value="Chandigarh">Chandigarh</option>
+                    <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra & Nagar Haveli and Daman & Diu</option>
+                    <option value="Delhi">Delhi (NCR)</option>
+                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                    <option value="Ladakh">Ladakh</option>
+                    <option value="Lakshadweep">Lakshadweep</option>
+                    <option value="Puducherry">Puducherry</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="district">District <span class="required">*</span></label>
+                  <input type="text" id="district" name="district" class="form-control" list="district-list" placeholder="Type or select District (e.g., Cuttack)" required autocomplete="off">
+                  <datalist id="district-list"></datalist>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="block">Block / Tehsil / Taluk</label>
+                  <input type="text" id="block" name="block" class="form-control" list="block-list" placeholder="E.g., Athagarh" autocomplete="off">
+                  <datalist id="block-list"></datalist>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="village">Village / Town / Local Ward <span class="required">*</span></label>
+                  <input type="text" id="village" name="village" class="form-control" list="village-list" placeholder="E.g., Gopalpur or Badambadi" required autocomplete="off">
+                  <datalist id="village-list"></datalist>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="area_type">Area & Market Archetype <span class="required">*</span></label>
+                <select id="area_type" name="area_type" class="form-control" required>
+                  <option value="" disabled selected>-- Select Area Archetype --</option>
+                  <option value="rural">🌾 Rural Village Cluster / Gram Panchayat (3-5 km catchment)</option>
+                  <option value="semi_urban">🏪 Semi-Urban Block / Taluk Market Hub (5-7 km catchment)</option>
+                  <option value="highway_junction">🛣️ Highway Junction & Transit Corridor</option>
+                  <option value="urban_outskirts">🏙️ Urban Outskirts & Suburban Growth Corridor</option>
+                  <option value="urban">🏢 Urban City Center / Municipal Ward</option>
+                  <option value="agro_cluster">🌽 Agricultural Cluster & APMC Mandi Area</option>
+                </select>
+                <p class="form-hint" id="micro-area-hint" style="margin-top:6px; color:var(--orange);">💡 Hyper-local analysis will calculate competition, customer reach, and rent specifically for your village/ward.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: Business Stage & Customers -->
+          <div class="form-main" id="section-category" style="margin-bottom:24px;">
+            <div class="form-section">
+              <h2 class="form-section-title">📋 Business Stage & Customers</h2>
+              <p class="form-section-sub">This helps us identify the most relevant market analysis and government schemes.</p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="business_stage">Business Stage <span class="required">*</span></label>
+                  <select id="business_stage" name="business_stage" class="form-control" required>
+                    <option value="" disabled selected>-- Select Stage --</option>
+                    <option value="new">New Business (Starting Fresh)</option>
+                    <option value="existing">Existing Business (Expanding)</option>
+                    <option value="idea">Idea Stage (Early Planning)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="target_customers">Target Customers <span class="required">*</span></label>
+                  <select id="target_customers" name="target_customers" class="form-control" required>
+                    <option value="" disabled selected>-- Select --</option>
+                    <option value="households">Local Households</option>
+                    <option value="retailers">Retail Shops / Businesses</option>
+                    <option value="students">Students / Youth</option>
+                    <option value="institutions">Institutions (Schools, Offices)</option>
+                    <option value="mixed">Mixed (Multiple Segments)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 4: Financial Details -->
+          <div class="form-main" id="section-finance" style="margin-bottom:24px;">
+            <div class="form-section">
+              <h2 class="form-section-title">💰 Financial Details</h2>
+              <p class="form-section-sub">Enter your investment details to get accurate projections.</p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="total_investment">Total Planned Investment (₹) <span class="required">*</span></label>
+                  <input type="number" id="total_investment" name="total_investment" class="form-control" placeholder="E.g., 500000" min="1000" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="own_capital">Your Own Capital (₹) <span class="required">*</span></label>
+                  <input type="number" id="own_capital" name="own_capital" class="form-control" placeholder="E.g., 200000" min="0" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="monthly_expenses">Estimated Monthly Expenses (₹)</label>
+                  <input type="number" id="monthly_expenses" name="monthly_expenses" class="form-control" placeholder="E.g., 30000" min="0">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="expected_revenue">Expected Monthly Revenue (₹)</label>
+                  <input type="number" id="expected_revenue" name="expected_revenue" class="form-control" placeholder="E.g., 55000" min="0">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="loan_required">Do You Need a Loan?</label>
+                  <select id="loan_required" name="loan_required" class="form-control">
+                    <option value="no" selected>No, I have sufficient capital</option>
+                    <option value="yes">Yes, I need a loan</option>
+                    <option value="maybe">Not sure yet</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="loan_amount">Loan Amount Required (₹)</label>
+                  <input type="number" id="loan_amount" name="loan_amount" class="form-control" placeholder="E.g., 300000" min="0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 5: Entrepreneur Profile -->
+          <div class="form-main" id="section-entrepreneur" style="margin-bottom:24px;">
+            <div class="form-section">
+              <h2 class="form-section-title">👤 Entrepreneur Profile</h2>
+              <p class="form-section-sub">Helps match you with special government schemes for women, SC/ST, and minority entrepreneurs.</p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="gender">Gender <span class="required">*</span></label>
+                  <select id="gender" name="gender" class="form-control" required>
+                    <option value="" disabled selected>-- Select --</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other / Prefer not to say</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="category">Social Category <span class="required">*</span></label>
+                  <select id="category" name="category" class="form-control" required>
+                    <option value="" disabled selected>-- Select Category --</option>
+                    <option value="general">General</option>
+                    <option value="obc">OBC</option>
+                    <option value="sc">SC</option>
+                    <option value="st">ST</option>
+                    <option value="minority">Minority</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="education">Education Level</label>
+                  <select id="education" name="education" class="form-control">
+                    <option value="" disabled selected>-- Select --</option>
+                    <option value="no_formal">No Formal Education</option>
+                    <option value="primary">Primary School</option>
+                    <option value="secondary">Secondary (Class 10)</option>
+                    <option value="higher_secondary">Higher Secondary (Class 12)</option>
+                    <option value="graduate">Graduate</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="is_shg">SHG / FPO Membership</label>
+                  <select id="is_shg" name="is_shg" class="form-control">
+                    <option value="no" selected>Not a member</option>
+                    <option value="shg">Yes – Self Help Group (SHG)</option>
+                    <option value="fpo">Yes – Farmer Producer Organization (FPO)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <a href="../index.html" class="btn btn-outline">Cancel</a>
+              <a href="advisor.html" class="btn btn-outline">🤖 Ask AI Advisor Instead</a>
+              <button type="submit" class="btn btn-primary btn-lg">Generate Analysis Report →</button>
+            </div>
+          </div>
+
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Vyapaar Vikash &copy; 2024 | <a href="login.html">Login</a></p>
+    </div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>

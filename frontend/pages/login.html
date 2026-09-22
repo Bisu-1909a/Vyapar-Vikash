@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login to Vyapaar Vikash – One Family One Entrepreneur. Scale your enterprise in Andhra Pradesh.">
+  <title>Login - Vyapaar Vikash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #0b1a2b; overflow-x: hidden; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ===== HERO WRAPPER ===== */
+    .login-hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Background image */
+    .hero-bg {
+      position: fixed;
+      inset: 0;
+      background-image: url('../assets/images/hero_rural.jpg');
+      background-size: cover;
+      background-position: center top;
+      z-index: 0;
+    }
+    /* Dark overlay — matches the screenshot's deep navy/charcoal tint */
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        160deg,
+        rgba(10, 20, 35, 0.78) 0%,
+        rgba(10, 20, 35, 0.65) 50%,
+        rgba(10, 20, 35, 0.80) 100%
+      );
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.3px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #f05b22, #d04a18);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .nav-links {
+      display: flex; gap: 32px; list-style: none;
+    }
+    .nav-links a {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: #fff; }
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .btn-nav-outline {
+      padding: 8px 20px;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.86rem;
+      font-weight: 600;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-nav-outline:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+    .btn-nav-primary {
+      padding: 8px 20px;
+      background: #f05b22;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-nav-primary:hover { background: #d04a18; }
+
+    /* ===== MAIN LAYOUT (hero + login card side by side) ===== */
+    .hero-body {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 60px 48px 0;
+      gap: 40px;
+    }
+
+    /* ===== LEFT: COPY ===== */
+    .hero-copy {
+      flex: 1;
+      max-width: 580px;
+      color: #fff;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(240, 91, 34, 0.18);
+      border: 1px solid rgba(240, 91, 34, 0.4);
+      color: #f9a96a;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+    .hero-h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .hero-h1 .accent {
+      color: #f9a230;
+      display: block;
+      font-size: 0.72em;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-top: 6px;
+    }
+    .hero-h1 .location {
+      display: block;
+      font-size: 0.52em;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0;
+      margin-top: 4px;
+    }
+    .hero-desc {
+      font-size: 0.97rem;
+      color: rgba(255,255,255,0.72);
+      line-height: 1.65;
+      max-width: 480px;
+      margin-bottom: 36px;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 64px;
+    }
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #f05b22, #e04010);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(240,91,34,0.4);
+    }
+    .btn-hero-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(240,91,34,0.55);
+    }
+    .btn-hero-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 10px;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      backdrop-filter: blur(6px);
+    }
+    .btn-hero-ghost:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.5); }
+
+    /* ===== RIGHT: LOGIN CARD ===== */
+    .login-card {
+      width: 420px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 20px;
+      padding: 40px 36px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+    .card-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.05rem;
+      margin-bottom: 28px;
+    }
+    .card-logo .logo-icon { width: 34px; height: 34px; font-size: 0.95rem; }
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .card-sub {
+      font-size: 0.87rem;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* Form */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 7px;
+      letter-spacing: 0.2px;
+    }
+    .form-label .req { color: #f05b22; margin-left: 2px; }
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 0.92rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .form-control::placeholder { color: rgba(255,255,255,0.35); }
+    .form-control:focus {
+      border-color: #f05b22;
+      background: rgba(255,255,255,0.12);
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .form-check {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+    }
+    .form-check input[type="checkbox"] {
+      accent-color: #f05b22;
+      width: 15px; height: 15px;
+      cursor: pointer;
+    }
+    .link-forgot {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #f9a230;
+      transition: opacity 0.2s;
+    }
+    .link-forgot:hover { opacity: 0.75; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #f05b22, #e04010);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(240,91,34,0.4);
+      margin-bottom: 20px;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(240,91,34,0.55);
+    }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 18px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px; background: rgba(255,255,255,0.12);
+    }
+    .divider span { font-size: 0.78rem; color: rgba(255,255,255,0.35); white-space: nowrap; }
+
+    .btn-register {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.22);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-register:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.45); }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.35);
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: rgba(255,255,255,0.7); }
+
+    /* ===== STATS BAR ===== */
+    .stats-bar {
+      position: relative;
+      z-index: 5;
+      padding: 32px 48px;
+    }
+    .stats-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 60px;
+    }
+    .stats-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 18px;
+      padding-left: 2px;
+    }
+    .stats-items {
+      display: flex;
+      gap: 60px;
+    }
+    .stat-item {}
+    .stat-num {
+      display: block;
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #f9a230;
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-num.white { color: #fff; }
+    .stat-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ===== BOTTOM BORDER ACCENT ===== */
+    .bottom-accent {
+      position: relative;
+      z-index: 5;
+      height: 4px;
+      background: linear-gradient(90deg, #f05b22 0%, #f9a230 50%, #f05b22 100%);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 960px) {
+      .hero-body { flex-direction: column; align-items: center; padding: 40px 24px 0; }
+      .hero-copy { max-width: 100%; text-align: center; }
+      .hero-desc { margin: 0 auto 32px; }
+      .hero-ctas { justify-content: center; }
+      .login-card { width: 100%; max-width: 440px; }
+      .navbar { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .stats-bar { padding: 28px 24px; }
+      .stats-inner { flex-direction: column; gap: 16px; }
+      .stats-items { gap: 32px; }
+    }
+    @media (max-width: 480px) {
+      .hero-h1 { font-size: 2rem; }
+      .stats-items { flex-wrap: wrap; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-hero">
+
+    <!-- Background image with overlay -->
+    <div class="hero-bg"></div>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">🌱</div>
+        Vyapaar Vikash
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../index.html#features">Features</a></li>
+        <li><a href="analyse.html">Analysis</a></li>
+        <li><a href="advisor.html">AI Advisor</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="login.html" class="btn-nav-outline active">Login</a>
+        <a href="analyse.html" class="btn-nav-primary">Get Started →</a>
+      </div>
+    </nav>
+
+    <!-- ===== HERO BODY ===== -->
+    <div class="hero-body">
+
+      <!-- Left: copy -->
+      <div class="hero-copy">
+        <div class="hero-eyebrow">💼 Vyapaar Vikash</div>
+        <h1 class="hero-h1">
+          One Family One Entrepreneur
+          <span class="accent">Scale Your Enterprise in</span>
+          <span class="location">Andhra Pradesh.</span>
+        </h1>
+        <p class="hero-desc">
+          Complete your Udyam registration to unlock government schemes,
+          collateral-free credit, and direct market linkages.
+        </p>
+        <div class="hero-ctas">
+          <a href="analyse.html" class="btn-hero-primary">Register Now* →</a>
+          <a href="../index.html#features" class="btn-hero-ghost">Explore Schemes ›</a>
+        </div>
+      </div>
+
+      <!-- Right: login card -->
+      <div class="login-card">
+        <div class="card-logo">
+          <div class="logo-icon">🌱</div>
+          Vyapaar Vikash
+        </div>
+
+        <h2 class="card-title">Welcome Back</h2>
+        <p class="card-sub">Sign in to your account to continue your entrepreneurial journey.</p>
+
+        <form action="dashboard.html" method="GET">
+          <div class="form-group">
+            <label class="form-label" for="username">Username / Mobile <span class="req">*</span></label>
+            <input type="text" id="username" name="username" class="form-control"
+              placeholder="Enter username or mobile number" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password">Password <span class="req">*</span></label>
+            <input type="password" id="password" name="password" class="form-control"
+              placeholder="Enter your password" required>
+          </div>
+          <div class="form-row">
+            <label class="form-check">
+              <input type="checkbox" name="remember"> Remember me
+            </label>
+            <a href="#" class="link-forgot">Forgot Password?</a>
+          </div>
+          <button type="submit" class="btn-submit">Sign In →</button>
+        </form>
+
+        <div class="divider"><span>OR</span></div>
+        <a href="register.html" class="btn-register">Create New Account</a>
+        <a href="../index.html" class="back-link">← Back to Home</a>
+      </div>
+
+    </div>
+
+    <!-- ===== STATS BAR ===== -->
+    <div class="stats-bar">
+      <div class="stats-inner">
+        <div>
+          <div class="stats-eyebrow">Platform Scale &amp; Impact</div>
+        </div>
+        <div class="stats-items">
+          <div class="stat-item">
+            <span class="stat-num">23,98,720</span>
+            <span class="stat-label">Udyam MSMEs</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num white">175</span>
+            <span class="stat-label">MSME Parks</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num white">28</span>
+            <span class="stat-label">Districts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom accent bar -->
+    <div class="bottom-accent"></div>
+
+  </div>
+
+</body>
+</html>

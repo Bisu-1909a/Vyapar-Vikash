@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Plan - Vyapaar Vikash</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .results-nav{display:flex;background:var(--white);border-bottom:var(--border);overflow-x:auto;position:sticky;top:68px;z-index:50;}
+    .results-nav a{padding:14px 20px;font-size:0.88rem;font-weight:600;color:var(--gray-600);border-bottom:3px solid transparent;white-space:nowrap;transition:var(--transition);}
+    .results-nav a:hover,.results-nav a.active{color:var(--orange);border-bottom-color:var(--orange);background:var(--orange-light);}
+    .fin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:var(--border);}
+    .fin-row:last-child{border-bottom:none;}
+    .progress-bar{background:var(--gray-200);border-radius:50px;height:8px;margin-top:6px;}
+    .progress-fill{height:8px;border-radius:50px;background:var(--orange);}
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="logo"><div class="logo-icon">🌱</div>Vyapaar Vikash</a>
+      <ul class="nav-links"><li><a href="../index.html">Home</a></li><li><a href="analyze.html">New Analysis</a></li><li><a href="advisor.html">AI Advisor</a></li><li><a href="dashboard.html">Dashboard</a></li></ul>
+      <div class="d-flex gap-sm"><a href="analyze.html" class="btn btn-primary btn-sm">+ New Analysis</a><a href="login.html" class="btn btn-outline btn-sm">Logout</a></div>
+    </div>
+  </nav>
+  <header class="results-header">
+    <div class="container">
+      <div class="d-flex justify-between align-center" style="flex-wrap:wrap;gap:16px;">
+        <div>
+          <span style="color:var(--orange);font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;">📱 Mobile Shop · Financial Feasibility</span>
+          <h1 style="font-size:2rem;font-weight:800;margin-top:6px;">Financial Plan — ₹3,00,000 Investment</h1>
+        </div>
+        <a href="results-overview.html" class="btn btn-ghost">← Overview</a>
+      </div>
+      <div class="results-meta" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:20px;">
+        <div class="results-meta-item">💰 <strong>Total Investment: ₹3,00,000</strong></div>
+        <div class="results-meta-item">📈 <strong>Est. Monthly Profit: ₹27,000</strong></div>
+        <div class="results-meta-item">⏱️ <strong>Break-Even: 10–12 Months</strong></div>
+      </div>
+    </div>
+  </header>
+  <div class="results-nav">
+    <a href="results-overview.html">📊 Overview</a><a href="results-market.html">📍 Market</a>
+    <a href="results-competition.html">🗺️ Competition</a><a href="results-swot.html">🧭 SWOT</a>
+    <a href="results-financial.html" class="active">💰 Financial</a><a href="results-schemes.html">🏛️ Schemes</a>
+    <a href="results-action.html">🚀 Action Plan</a><a href="advisor.html">🤖 AI Advisor</a>
+  </div>
+
+  <div class="container" style="padding:36px 24px 60px;">
+    <div class="results-layout">
+      <main>
+        <div class="section-label" id="fin-section-label">Financial Structuring · Based on ₹3,00,000 Investment · Mobile Shop</div>
+        <h2 style="font-size:1.4rem;font-weight:700;color:var(--navy);margin-bottom:20px;">Startup Cost Breakdown</h2>
+
+        <!-- Investment Breakdown -->
+        <div class="card" style="margin-bottom:24px;">
+          <h3 class="card-title" id="fin-startup-title" style="margin-bottom:18px;">Where Does Your ₹3,00,000 Go?</h3>
+          <div id="fin-startup-container">
+            <div class="fin-row">
+              <div><strong style="font-size:0.9rem;">📱 Initial Phone Stock (Budget models)</strong><div class="progress-bar"><div class="progress-fill" style="width:50%;"></div></div></div>
+              <strong style="color:var(--navy);white-space:nowrap;margin-left:16px;">₹1,50,000</strong>
+            </div>
+            <div class="fin-row">
+              <div><strong style="font-size:0.9rem;">🏪 Shop Setup — Furniture, Racks, AC, Signboard</strong><div class="progress-bar"><div class="progress-fill" style="width:17%;"></div></div></div>
+              <strong style="color:var(--navy);white-space:nowrap;margin-left:16px;">₹50,000</strong>
+            </div>
+            <div class="fin-row">
+              <div><strong style="font-size:0.9rem;">🎧 Accessories Stock (Earphones, cases, chargers)</strong><div class="progress-bar"><div class="progress-fill" style="width:13%;"></div></div></div>
+              <strong style="color:var(--navy);white-space:nowrap;margin-left:16px;">₹40,000</strong>
+            </div>
+            <div class="fin-row">
+              <div><strong style="font-size:0.9rem;">🔧 Repair Tools & Equipment</strong><div class="progress-bar"><div class="progress-fill" style="width:8%;"></div></div></div>
+              <strong style="color:var(--navy);white-space:nowrap;margin-left:16px;">₹25,000</strong>
+            </div>
+            <div class="fin-row">
+              <div><strong style="font-size:0.9rem;">🏠 Advance Rent (2 months) + Registration</strong><div class="progress-bar"><div class="progress-fill" style="width:12%;"></div></div></div>
+              <strong style="color:var(--navy);white-space:nowrap;margin-left:16px;">₹35,000</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Projections -->
+        <div class="grid-2" style="margin-bottom:24px;">
+          <div class="card">
+            <div class="tag tag-orange">Monthly Expenses</div>
+            <div id="fin-expenses-container" style="display:flex;flex-direction:column;gap:10px;margin-top:8px;font-size:0.88rem;">
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Shop Rent</span><strong>₹10,000</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Electricity</span><strong>₹2,000</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Accessories Restocking</span><strong>₹8,000</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Technician (part-time)</span><strong>₹8,000</strong></div>
+              <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:var(--border);"><span style="font-weight:700;">Total Monthly Cost</span><strong id="fin-expenses-total" style="color:var(--red);">₹28,000</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="tag tag-green">Monthly Revenue</div>
+            <div id="fin-revenue-container" style="display:flex;flex-direction:column;gap:10px;margin-top:8px;font-size:0.88rem;">
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Phone Sales (20 units avg.)</span><strong>₹30,000</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Repair Services (80 jobs)</span><strong>₹16,000</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Accessories Sales</span><strong>₹6,000</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Recharge Commission</span><strong>₹3,000</strong></div>
+              <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:var(--border);"><span style="font-weight:700;">Total Monthly Revenue</span><strong id="fin-revenue-total" style="color:var(--green);">₹55,000</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Numbers -->
+        <div class="card" style="margin-bottom:24px;">
+          <h3 class="card-title" style="margin-bottom:16px;">Financial Summary</h3>
+          <div class="finance-grid" id="fin-summary-grid">
+            <div class="finance-item"><div class="finance-item-label">Total Investment</div><div class="finance-item-value">₹3,00,000</div></div>
+            <div class="finance-item"><div class="finance-item-label">Monthly Revenue</div><div class="finance-item-value">₹55,000</div></div>
+            <div class="finance-item"><div class="finance-item-label">Monthly Expenses</div><div class="finance-item-value">₹28,000</div></div>
+            <div class="finance-item"><div class="finance-item-label">Monthly Profit</div><div class="finance-item-value positive">₹27,000</div></div>
+            <div class="finance-item"><div class="finance-item-label">Profit Margin</div><div class="finance-item-value positive">49%</div></div>
+            <div class="finance-item"><div class="finance-item-label">Break-Even</div><div class="finance-item-value">10–12 months</div></div>
+          </div>
+        </div>
+
+        <!-- Year 1 Projection -->
+        <div class="card" style="margin-bottom:24px;">
+          <h3 class="card-title" style="margin-bottom:16px;">Year 1 Growth Projection</h3>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+              <thead><tr style="background:var(--navy);color:white;">
+                <th style="padding:10px 14px;text-align:left;">Period</th>
+                <th style="padding:10px 14px;text-align:right;">Monthly Revenue</th>
+                <th style="padding:10px 14px;text-align:right;">Monthly Profit</th>
+                <th style="padding:10px 14px;text-align:right;">Cumulative Investment Recovery</th>
+              </tr></thead>
+              <tbody id="fin-year1-table-body">
+                <tr style="border-bottom:var(--border);"><td style="padding:10px 14px;">Month 1–2 (Setup)</td><td style="padding:10px 14px;text-align:right;">₹28,000</td><td style="padding:10px 14px;text-align:right;color:var(--red);">₹0 (break-even)</td><td style="padding:10px 14px;text-align:right;">₹0 recovered</td></tr>
+                <tr style="border-bottom:var(--border);background:var(--gray-100);"><td style="padding:10px 14px;">Month 3–6 (Growth)</td><td style="padding:10px 14px;text-align:right;">₹42,000</td><td style="padding:10px 14px;text-align:right;color:var(--orange);">₹14,000</td><td style="padding:10px 14px;text-align:right;">₹56,000 recovered</td></tr>
+                <tr style="border-bottom:var(--border);"><td style="padding:10px 14px;">Month 7–12 (Stable)</td><td style="padding:10px 14px;text-align:right;">₹55,000</td><td style="padding:10px 14px;text-align:right;color:var(--green);">₹27,000</td><td style="padding:10px 14px;text-align:right;">₹2,18,000 recovered</td></tr>
+                <tr style="background:rgba(40,167,69,0.08);"><td style="padding:10px 14px;font-weight:700;">By Month 12</td><td style="padding:10px 14px;text-align:right;font-weight:700;">₹55,000+</td><td style="padding:10px 14px;text-align:right;font-weight:700;color:var(--green);">₹27,000+</td><td style="padding:10px 14px;text-align:right;font-weight:700;color:var(--green);">~₹2.7L recovered</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="d-flex gap-md" style="flex-wrap:wrap;">
+          <a href="results-schemes.html" class="btn btn-primary">Next: Govt. Schemes →</a>
+          <a href="results-swot.html" class="btn btn-outline">← SWOT</a>
+        </div>
+      </main>
+
+      <aside class="results-sidebar" style="padding-top:0;">
+        <div class="score-card">
+          <div class="score-label">Financial Viability</div>
+          <div class="score-value" id="fin-sidebar-viability">GOOD</div>
+          <span class="score-tag" id="fin-sidebar-score">Score: 72/100</span>
+          <div class="score-bars mt-3">
+            <div><div class="score-bar-label"><span>Profit Margin</span><span id="fin-sidebar-margin-label">49%</span></div><div class="score-bar-track"><div class="score-bar-fill" id="fin-sidebar-margin-fill" style="width:49%;"></div></div></div>
+            <div><div class="score-bar-label"><span>Revenue Stability</span><span>70%</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:70%;"></div></div></div>
+            <div><div class="score-bar-label"><span>Capital Efficiency</span><span>80%</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;"></div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--navy);margin-bottom:12px;">Key Financials</h3>
+          <div style="font-size:0.85rem;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Monthly Profit</span><strong id="fin-sidebar-monthly-profit" style="color:var(--green);">₹27,000</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Annual Income</span><strong id="fin-sidebar-annual-income" style="color:var(--green);">₹3.24L/year</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">Break-Even</span><strong id="fin-sidebar-breakeven">10–12 months</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--gray-600);">ROI (Year 1)</span><strong id="fin-sidebar-roi" style="color:var(--green);">108%</strong></div>
+          </div>
+        </div>
+        <a href="results-schemes.html" class="btn btn-primary btn-full">Next: Schemes →</a>
+      </aside>
+    </div>
+  </div>
+  <footer class="footer"><div class="container"><p>Vyapaar Vikash &copy; 2024</p></div></footer>
+  <script src="../js/app.js"></script>
+</body>
+</html>
