@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Intelligence & Business Analysis - Vyapaar Vikash</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Leaflet CSS for Interactive Geographic & Radius Mapping -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <style>
+    /* Mode Toggle */
+    .analysis-mode-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      background: var(--white);
+      padding: 8px;
+      border-radius: var(--radius-md);
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--gray-600);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .mode-btn.active {
+      background: var(--navy);
+      color: var(--white);
+      box-shadow: var(--shadow-sm);
+    }
+    .mode-btn:hover:not(.active) {
+      background: var(--gray-100);
+      color: var(--navy);
+    }
+
+    /* Location Explorer Hero Card */
+    .explorer-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      border: var(--border);
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+    .loc-search-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .loc-search-box {
+      flex: 2;
+      min-width: 280px;
+      position: relative;
+    }
+    .loc-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+      margin-top: 4px;
+    }
+    .loc-sug-item {
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--gray-100);
+      transition: var(--transition);
+    }
+    .loc-sug-item:hover {
+      background: var(--orange-light);
+      color: var(--orange);
+    }
+    .radius-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .radius-pill {
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid var(--gray-300);
+      background: var(--white);
+      color: var(--navy);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .radius-pill.active {
+      background: var(--orange);
+      color: var(--white);
+      border-color: var(--orange);
+    }
+
+    /* Map Box */
+    #opp-leaflet-map {
+      height: 380px;
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: var(--border);
+      z-index: 1;
+    }
+    .map-meta-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+      padding: 14px 18px;
+      background: var(--gray-100);
+      border-radius: var(--radius-sm);
+      border: var(--border);
+    }
+    .map-meta-item {
+      text-align: center;
+    }
+    .map-meta-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .map-meta-lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gray-600);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    @media (max-width: 800px) {
+      .map-meta-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Opportunity Cards */
+    .opportunity-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      border: var(--border);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      position: relative;
+    }
+    .opportunity-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .priority-1 { background: rgba(240, 91, 34, 0.12); color: var(--orange); border: 1px solid rgba(240, 91, 34, 0.3); }
+    .priority-2 { background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .priority-3 { background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .priority-4 { background: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .priority-5 { background: rgba(100, 116, 139, 0.12); color: #475569; border: 1px solid rgba(100, 116, 139, 0.3); }
+
+    .score-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .score-num { font-size: 1.4rem; font-weight: 900; line-height: 1; }
+    .score-max { font-size: 0.65rem; opacity: 0.8; }
+
+    .confidence-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: rgba(40, 167, 69, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(40, 167, 69, 0.25);
+    }
+
+    /* Comparison & Matrix */
+    .market-matrix-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .matrix-quadrant {
+      padding: 18px;
+      border-radius: var(--radius-sm);
+      border: var(--border);
+    }
+    .matrix-quadrant.q1 { background: rgba(40, 167, 69, 0.06); border-color: rgba(40, 167, 69, 0.25); }
+    .matrix-quadrant.q2 { background: rgba(240, 91, 34, 0.06); border-color: rgba(240, 91, 34, 0.25); }
+    .matrix-quadrant.q3 { background: rgba(59, 130, 246, 0.06); border-color: rgba(59, 130, 246, 0.25); }
+    .matrix-quadrant.q4 { background: rgba(100, 116, 139, 0.06); border-color: rgba(100, 116, 139, 0.25); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 26, 43, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      max-width: 820px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.5rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--gray-600);
+    }
+    .waterfall-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .waterfall-label {
+      width: 170px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--navy);
+      flex-shrink: 0;
+    }
+    .waterfall-track {
+      flex: 1;
+      height: 20px;
+      background: var(--gray-200);
+      border-radius: 50px;
+      overflow: hidden;
+      position: relative;
+    }
+    .waterfall-fill {
+      height: 100%;
+      border-radius: 50px;
+      background: linear-gradient(90deg, var(--navy-light) 0%, var(--orange) 100%);
+      transition: width 0.6s ease;
+    }
+    .waterfall-val {
+      width: 75px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: right;
+      color: var(--navy);
+      flex-shrink: 0;
+    }
+
+    /* Stepper Animation */
+    .research-stepper {
+      display: none;
+      background: var(--navy);
+      color: var(--white);
+      border-radius: var(--radius-md);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      animation: pulse 2s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.88; }
+    }
+
+    /* Single Business Grid (Preserved) */
+    .business-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .business-type-option { position: relative; }
+    .business-type-option input[type="radio"] { position: absolute; opacity: 0; width: 0; }
+    .business-type-option label {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 16px 10px; border: 2px solid var(--gray-200); border-radius: var(--radius-md);
+      cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--gray-600);
+      transition: var(--transition); text-align: center; background: var(--white);
+    }
+    .business-type-option label .icon { font-size: 1.6rem; }
+    .business-type-option input[type="radio"]:checked + label {
+      border-color: var(--orange); background: var(--orange-light); color: var(--orange);
+    }
+    .business-type-option label:hover { border-color: var(--orange); color: var(--orange); }
+    @media (max-width: 600px) {
+      .business-type-grid { grid-template-columns: repeat(2, 1fr); }
+      .analysis-mode-selector { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">🌱</div>
+        Vyapaar Vikash
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="analyze.html" class="active">Business Intelligence</a></li>
+        <li><a href="advisor.html">AI Advisor</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+      </ul>
+      <div class="d-flex gap-sm">
+        <a href="dashboard.html" class="btn btn-outline btn-sm">Workspace</a>
+        <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== PAGE HEADER ===== -->
+  <header class="page-analyze-header">
+    <div class="container">
+      <div style="display:inline-block;background:rgba(240,91,34,0.18);color:var(--orange);padding:4px 14px;border-radius:50px;font-size:0.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">
+        📍 Location-Based Market Intelligence Platform
+      </div>
+      <h1>Discover &amp; Plan High-Potential Businesses</h1>
+      <p>Research real local market demand, competitor density, and micro-economic signals to identify Priority 1–5 opportunities with verified data.</p>
+    </div>
+  </header>
+
+  <div class="container" style="padding-top: 24px; padding-bottom: 60px;">
+
+    <!-- Mode Selector Tabs -->
+    <div class="analysis-mode-selector">
+      <button class="mode-btn active" id="btn-mode-location" onclick="switchAnalysisMode('location')">
+        📍 Location Opportunity Intelligence (Priority 1–5 Discovery)
+      </button>
+      <button class="mode-btn" id="btn-mode-single" onclick="switchAnalysisMode('single')">
+        💼 Custom Single-Business Feasibility Form
+      </button>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODE 1: LOCATION OPPORTUNITY DISCOVERY & RANKING (PRIMARY) -->
+    <!-- ======================================================== -->
+    <div id="view-mode-location">
+
+      <!-- Location Input & Filters -->
+      <div class="explorer-card">
+        <h2 style="font-size:1.25rem;font-weight:800;color:var(--navy);margin-bottom:6px;">
+          📍 Step 1: Select Your Location &amp; Catchment Zone
+        </h2>
+        <p style="font-size:0.9rem;color:var(--gray-600);margin-bottom:20px;">
+          Enter any village, town, market center, PIN code, or landmark in India. Our engine will geocode the coordinates and analyze the local market within your chosen radius.
+        </p>
+
+        <div class="loc-search-row">
+          <div class="loc-search-box">
+            <label class="form-label" for="loc-search-input">City, Locality, Village, Landmark or PIN <span class="required">*</span></label>
+            <input type="text" id="loc-search-input" class="form-control" placeholder="E.g., Patia, Bhubaneswar or Varanasi or 751024" value="Patia, Bhubaneswar" autocomplete="off">
+            <div id="loc-suggestions-box" class="loc-suggestions"></div>
+          </div>
+
+          <div style="flex:1;min-width:200px;">
+            <label class="form-label" for="loc-area-type">Area Archetype</label>
+            <select id="loc-area-type" class="form-control">
+              <option value="semi_urban" selected>🏪 Semi-Urban Market Hub (5–7 km)</option>
+              <option value="urban">🏢 Urban City Center (Dense Walk-ins)</option>
+              <option value="peri_urban">🏙️ Peri-Urban Growth Corridor</option>
+              <option value="rural">🌾 Rural Village Cluster (3–5 km)</option>
+              <option value="highway">🛣️ Highway &amp; Transit Corridor</option>
+            </select>
+          </div>
+
+          <div style="flex:1;min-width:180px;">
+            <label class="form-label" for="loc-budget-input">Investment Budget (Optional)</label>
+            <input type="number" id="loc-budget-input" class="form-control" placeholder="E.g., 300000" value="300000" min="0">
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label">Catchment Analysis Radius:</label>
+          <div class="radius-pills" id="radius-selector">
+            <button type="button" class="radius-pill" data-radius="0.5">500 m</button>
+            <button type="button" class="radius-pill" data-radius="1.0">1 km</button>
+            <button type="button" class="radius-pill" data-radius="2.0">2 km</button>
+            <button type="button" class="radius-pill active" data-radius="3.0">3 km (Standard)</button>
+            <button type="button" class="radius-pill" data-radius="5.0">5 km (Suburban)</button>
+            <button type="button" class="radius-pill" data-radius="10.0">10 km (Regional)</button>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;display:flex;justify-content:flex-end;">
+          <button type="button" id="btn-discover" class="btn btn-primary btn-lg" style="min-width:240px;display:flex;align-items:center;justify-content:center;gap:10px;">
+            🔍 Research &amp; Rank Opportunities →
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Research Progress State -->
+      <div id="research-progress" class="research-stepper">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="font-size:2rem;">🛰️</div>
+          <div>
+            <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;" id="stepper-title">Analyzing Location...</h3>
+            <p style="font-size:0.88rem;opacity:0.9;" id="stepper-desc">Querying OpenStreetMap spatial nodes and demographic indicators...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Showcase Section -->
+      <div id="opportunity-results" style="display:none;">
+
+        <!-- Interactive Map & Catchment Intelligence -->
+        <div class="explorer-card" style="padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <div>
+              <h3 style="font-size:1.15rem;font-weight:800;color:var(--navy);" id="res-location-heading">
+                📍 Geographic Catchment &amp; Competitor Map
+              </h3>
+              <p style="font-size:0.82rem;color:var(--gray-600);" id="res-location-sub">
+                Centered at <span id="res-coords">20.2961°N, 85.8245°E</span> · Radius: <span id="res-radius-label">3.0 km</span>
+              </p>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-save-loc-bookmark">🔖 Bookmark Location</button>
+              <span class="confidence-tag" id="res-confidence-badge">91.5% Confidence Score</span>
+            </div>
+          </div>
+
+          <!-- Leaflet Map Container -->
+          <div id="opp-leaflet-map"></div>
+
+          <!-- Micro-economic Telemetry Bar -->
+          <div class="map-meta-bar">
+            <div class="map-meta-item">
+              <div class="map-meta-val" id="meta-pop">33,900</div>
+              <div class="map-meta-lbl">Catchment Population</div>
+            </div>
+            <div class="map-meta-item">
+              <div class="map-meta-val" id="meta-footfall">7.3 / 10</div>
+              <div class="map-meta-lbl">Footfall Velocity Index</div>
+            </div>
+            <div class="map-meta-item">
+              <div class="map-meta-val" id="meta-rent">₹18 / sq.ft</div>
+              <div class="map-meta-lbl">Commercial Base Rent</div>
+            </div>
+            <div class="map-meta-item">
+              <div class="map-meta-val" id="meta-wage">₹420 / day</div>
+              <div class="map-meta-lbl">Daily Wage Benchmark</div>
+            </div>
+            <div class="map-meta-item">
+              <div class="map-meta-val" id="meta-competitors">12 Nearby</div>
+              <div class="map-meta-lbl">Competitor Outlets</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Header for Opportunities -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="font-size:1.4rem;font-weight:800;color:var(--navy);">
+              🏆 Top 5 Ranked Opportunities for This Location
+            </h2>
+            <p style="font-size:0.88rem;color:var(--gray-600);">
+              Evaluated across 6 objective factors: Demand (30%), Competition (20%), Growth (15%), Spending (15%), Supply Gap (10%), Location Fit (10%).
+            </p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('market-matrix-section').scrollIntoView({behavior:'smooth'})">
+            📊 View Market Gap Matrix ↓
+          </button>
+        </div>
+
+        <!-- Priority 1 through 5 Cards Container -->
+        <div id="opp-cards-container"></div>
+
+        <!-- Priority 1 "Why Not The Other Options?" Comparative Card -->
+        <div class="explorer-card" id="comparative-analysis-card" style="border-left: 4px solid var(--orange);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:1.5rem;">⚖️</span>
+            <div>
+              <h3 style="font-size:1.15rem;font-weight:800;color:var(--navy);">
+                Comparative Breakdown: Why Priority 1 Ranked Above Other Options
+              </h3>
+              <p style="font-size:0.85rem;color:var(--gray-600);">
+                Mathematical delta analysis explaining why the top recommendation leads over alternatives in this specific geographic catchment.
+              </p>
+            </div>
+          </div>
+          <div id="comparative-table-container"></div>
+        </div>
+
+        <!-- 4-Quadrant Market Gap Matrix -->
+        <div class="explorer-card" id="market-matrix-section">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span style="font-size:1.5rem;">🎯</span>
+            <h3 style="font-size:1.15rem;font-weight:800;color:var(--navy);">
+              Market Gap Matrix: Demand vs. Competition Quadrants
+            </h3>
+          </div>
+          <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:16px;">
+            Visual positioning of candidate sectors across the local rivalry and customer demand spectrum.
+          </p>
+          <div class="market-matrix-grid">
+            <div class="matrix-quadrant q1">
+              <h4 style="font-size:0.95rem;font-weight:700;color:#059669;margin-bottom:6px;">🌟 High Demand + Low Competition (Prime Opportunities)</h4>
+              <p style="font-size:0.82rem;color:var(--gray-600);margin-bottom:10px;">Immediate headroom with minimal pricing pressure.</p>
+              <div id="quadrant-q1-list" style="font-size:0.88rem;font-weight:600;color:var(--navy);"></div>
+            </div>
+            <div class="matrix-quadrant q2">
+              <h4 style="font-size:0.95rem;font-weight:700;color:var(--orange);margin-bottom:6px;">🔥 High Demand + High Competition (Competitive Growth)</h4>
+              <p style="font-size:0.82rem;color:var(--gray-600);margin-bottom:10px;">High volumes exist, but aggressive differentiation and service quality are required.</p>
+              <div id="quadrant-q2-list" style="font-size:0.88rem;font-weight:600;color:var(--navy);"></div>
+            </div>
+            <div class="matrix-quadrant q3">
+              <h4 style="font-size:0.95rem;font-weight:700;color:#2563eb;margin-bottom:6px;">🛡️ Moderate Demand + Low Competition (Niche Footholds)</h4>
+              <p style="font-size:0.82rem;color:var(--gray-600);margin-bottom:10px;">Low upfront risk with steady localized patronage.</p>
+              <div id="quadrant-q3-list" style="font-size:0.88rem;font-weight:600;color:var(--navy);"></div>
+            </div>
+            <div class="matrix-quadrant q4">
+              <h4 style="font-size:0.95rem;font-weight:700;color:#475569;margin-bottom:6px;">⚠️ Lower Demand + High Rivalry (Challenging)</h4>
+              <p style="font-size:0.82rem;color:var(--gray-600);margin-bottom:10px;">Thin margins and crowded market; proceed only with strong cost advantage.</p>
+              <div id="quadrant-q4-list" style="font-size:0.88rem;font-weight:600;color:var(--navy);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Scenario Analysis Simulator -->
+        <div class="explorer-card" style="background:linear-gradient(135deg, rgba(15,43,70,0.03) 0%, rgba(240,91,34,0.03) 100%);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:1.5rem;">🎛️</span>
+            <div>
+              <h3 style="font-size:1.15rem;font-weight:800;color:var(--navy);">Interactive Scenario Stress-Test</h3>
+              <p style="font-size:0.85rem;color:var(--gray-600);">Simulate unexpected economic shifts (higher rent, demand drop, new competitors) to test business resilience before investing.</p>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:20px;">
+            <div>
+              <label class="form-label" style="font-size:0.85rem;">Commercial Rent Shift: <span id="label-rent-val" style="color:var(--orange);font-weight:700;">0%</span></label>
+              <input type="range" id="slider-rent" min="-50" max="50" step="10" value="0" style="width:100%;">
+              <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--gray-600);"><span>-50%</span><span>0%</span><span>+50%</span></div>
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.85rem;">Local Demand Shift: <span id="label-dem-val" style="color:var(--orange);font-weight:700;">0%</span></label>
+              <input type="range" id="slider-demand" min="-50" max="50" step="10" value="0" style="width:100%;">
+              <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--gray-600);"><span>-50%</span><span>0%</span><span>+50%</span></div>
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.85rem;">Competitor Influx: <span id="label-comp-val" style="color:var(--orange);font-weight:700;">+0 stores</span></label>
+              <input type="range" id="slider-comp" min="0" max="5" step="1" value="0" style="width:100%;">
+              <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--gray-600);"><span>+0</span><span>+2</span><span>+5</span></div>
+            </div>
+          </div>
+
+          <div id="scenario-result-box" style="padding:16px;border-radius:var(--radius-sm);background:var(--white);border:var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div>
+              <span style="font-size:0.8rem;text-transform:uppercase;color:var(--gray-600);font-weight:700;">Simulated Outcome</span>
+              <div style="font-size:1.1rem;font-weight:800;color:var(--navy);margin-top:2px;" id="scen-score-label">Baseline Score: 79.4 / 100</div>
+              <p style="font-size:0.82rem;color:var(--gray-600);margin-top:4px;" id="scen-impact-label">Parameters reflect baseline market assumptions.</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-reset-scenario">Reset to Baseline</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODE 2: CUSTOM SINGLE-BUSINESS FEASIBILITY FORM (PRESERVED) -->
+    <!-- ======================================================== -->
+    <div id="view-mode-single" style="display:none;">
+
+      <div class="analyze-layout">
+        <aside class="form-sidebar">
+          <div class="form-sidebar-header">Form Sections</div>
+          <nav class="form-sidebar-links">
+            <a href="#section-type" class="active">🏷️ Business Type</a>
+            <a href="#section-location">📍 Location</a>
+            <a href="#section-category">📋 Category</a>
+            <a href="#section-finance">💰 Financial Details</a>
+            <a href="#section-entrepreneur">👤 Entrepreneur Profile</a>
+          </nav>
+        </aside>
+
+        <main>
+          <form action="results-overview.html" method="GET" id="analyze-form">
+
+            <!-- SECTION 1: Business Type Selector -->
+            <div class="form-main" id="section-type" style="margin-bottom:24px;">
+              <div class="form-section">
+                <h2 class="form-section-title">🏷️ What Type of Business Do You Want to Start?</h2>
+                <p class="form-section-sub">Choose your business type from the list below. Select "Other" to describe your unique idea.</p>
+
+                <div class="business-type-grid">
+                  <div class="business-type-option">
+                    <input type="radio" id="type_mobile" name="business_type" value="mobile_shop">
+                    <label for="type_mobile"><span class="icon">📱</span>Mobile Shop</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_grocery" name="business_type" value="grocery" checked>
+                    <label for="type_grocery"><span class="icon">🛒</span>Grocery Store</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_dairy" name="business_type" value="dairy">
+                    <label for="type_dairy"><span class="icon">🐄</span>Dairy / Milk</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_bakery" name="business_type" value="bakery">
+                    <label for="type_bakery"><span class="icon">🍞</span>Bakery / Sweets</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_tailoring" name="business_type" value="tailoring">
+                    <label for="type_tailoring"><span class="icon">🧵</span>Tailoring / Garments</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_electronics" name="business_type" value="electronics_repair">
+                    <label for="type_electronics"><span class="icon">🔧</span>Electronics Repair</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_salon" name="business_type" value="salon">
+                    <label for="type_salon"><span class="icon">💇</span>Salon / Parlour</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_restaurant" name="business_type" value="restaurant">
+                    <label for="type_restaurant"><span class="icon">🍽️</span>Restaurant / Dhaba</label>
+                  </div>
+                  <div class="business-type-option">
+                    <input type="radio" id="type_agri" name="business_type" value="agriculture">
+                    <label for="type_agri"><span class="icon">🌾</span>Agriculture / Farming</label>
+                  </div>
+                </div>
+
+                <div class="form-group mt-2">
+                  <label class="form-label" for="business_name">Proposed Business Name <span class="required">*</span></label>
+                  <input type="text" id="business_name" name="business_name" class="form-control" placeholder="E.g., Ravi Kirana Store" value="My New Venture" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: Location -->
+            <div class="form-main" id="section-location" style="margin-bottom:24px;">
+              <div class="form-section">
+                <h2 class="form-section-title">📍 Business Location</h2>
+                <p class="form-section-sub">Your location is used to find real nearby competitors and analyze the local market.</p>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="state">State / Union Territory <span class="required">*</span></label>
+                    <select id="state" name="state" class="form-control" required>
+                      <option value="Odisha" selected>Odisha</option>
+                      <option value="Andhra Pradesh">Andhra Pradesh</option>
+                      <option value="Bihar">Bihar</option>
+                      <option value="Gujarat">Gujarat</option>
+                      <option value="Karnataka">Karnataka</option>
+                      <option value="Madhya Pradesh">Madhya Pradesh</option>
+                      <option value="Maharashtra">Maharashtra</option>
+                      <option value="Rajasthan">Rajasthan</option>
+                      <option value="Tamil Nadu">Tamil Nadu</option>
+                      <option value="Telangana">Telangana</option>
+                      <option value="Uttar Pradesh">Uttar Pradesh</option>
+                      <option value="West Bengal">West Bengal</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="district">District <span class="required">*</span></label>
+                    <input type="text" id="district" name="district" class="form-control" placeholder="E.g., Khordha" value="Khordha" required>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="village">Locality / Village / Town <span class="required">*</span></label>
+                    <input type="text" id="village" name="village" class="form-control" placeholder="E.g., Patia" value="Patia" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="area_type">Area Archetype <span class="required">*</span></label>
+                    <select id="area_type" name="area_type" class="form-control" required>
+                      <option value="semi_urban" selected>🏪 Semi-Urban Market Hub</option>
+                      <option value="urban">🏢 Urban City Center</option>
+                      <option value="rural">🌾 Rural Village Cluster</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 4: Financial Details -->
+            <div class="form-main" id="section-finance" style="margin-bottom:24px;">
+              <div class="form-section">
+                <h2 class="form-section-title">💰 Financial Details</h2>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="total_investment">Total Planned Investment (₹) <span class="required">*</span></label>
+                    <input type="number" id="total_investment" name="total_investment" class="form-control" value="300000" min="1000" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="own_capital">Your Own Capital (₹) <span class="required">*</span></label>
+                    <input type="number" id="own_capital" name="own_capital" class="form-control" value="150000" min="0" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="expected_monthly_sales">Expected Monthly Sales (₹)</label>
+                    <input type="number" id="expected_monthly_sales" name="expected_monthly_sales" class="form-control" value="65000" min="0">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="monthly_expenses">Monthly Operating Expenses (₹)</label>
+                    <input type="number" id="monthly_expenses" name="monthly_expenses" class="form-control" value="35000" min="0">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions" style="margin-top:20px;">
+                <button type="submit" class="btn btn-primary btn-lg" id="btn-run-single-analysis">
+                  Generate Certified Feasibility Report →
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </main>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: "WHY THIS RANKING?" FACTOR WATERFALL BREAKDOWN -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="modal-why-ranking">
+    <div class="modal-content">
+      <button type="button" class="modal-close" onclick="closeModal('modal-why-ranking')">&times;</button>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:2rem;" id="why-modal-icon">🛒</span>
+        <div>
+          <h3 style="font-size:1.35rem;font-weight:800;color:var(--navy);" id="why-modal-title">Why This Ranking?</h3>
+          <span class="priority-badge priority-1" id="why-modal-priority">Priority 1</span>
+        </div>
+      </div>
+
+      <div style="background:var(--gray-100);padding:14px 18px;border-radius:var(--radius-sm);margin-bottom:20px;border-left:4px solid var(--orange);">
+        <p style="font-size:0.9rem;font-weight:600;color:var(--navy);" id="why-modal-explanation">
+          Opportunity score is calculated via our deterministic 6-factor model.
+        </p>
+        <p style="font-size:0.82rem;color:var(--gray-600);margin-top:4px;" id="why-modal-lead-reason">
+          Lead explanation versus other sectors.
+        </p>
+      </div>
+
+      <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+        6-Factor Contribution Waterfall (Total: <span id="why-modal-total-score">79.4</span> / 100)
+      </h4>
+
+      <div id="waterfall-bars-container"></div>
+
+      <div style="margin-top:24px;border-top:var(--border);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.78rem;color:var(--gray-600);">ISO/IEC 27001 Grounded Protocol</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('modal-why-ranking')">Close Breakdown</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: 14-SECTION BUSINESS PLAN BLUEPRINT -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="modal-business-plan">
+    <div class="modal-content" style="max-width:920px;">
+      <button type="button" class="modal-close" onclick="closeModal('modal-business-plan')">&times;</button>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div>
+          <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;color:var(--orange);letter-spacing:1px;">Actionable Business Blueprint</span>
+          <h2 style="font-size:1.45rem;font-weight:800;color:var(--navy);margin-top:2px;" id="plan-modal-title">Business Plan</h2>
+          <p style="font-size:0.85rem;color:var(--gray-600);" id="plan-modal-sub">14 Structured Sections with Verified Data, Modeled Estimates, and AI Roadmaps</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" id="btn-copy-plan">📋 Copy Plan</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print / Export PDF</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-plan-to-db">💾 Save to Dashboard</button>
+        </div>
+      </div>
+
+      <!-- Financial Snapshot Cards -->
+      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;margin-bottom:24px;background:var(--gray-100);padding:14px;border-radius:var(--radius-sm);border:var(--border);">
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--navy);" id="plan-fin-sales">₹72,000</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Monthly Sales</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--green);" id="plan-fin-profit">₹14,500</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Net Monthly Profit</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--orange);" id="plan-fin-margin">22%</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Gross Margin</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--navy);" id="plan-fin-be">9 Months</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Break-Even Period</div>
+        </div>
+      </div>
+
+      <!-- 14 Sections Accordion/List -->
+      <div id="plan-sections-container" style="display:flex;flex-direction:column;gap:16px;"></div>
+
+      <!-- 10-Step Execution Roadmap -->
+      <div style="margin-top:28px;padding-top:20px;border-top:var(--border);">
+        <h3 style="font-size:1.15rem;font-weight:800;color:var(--navy);margin-bottom:14px;">
+          🚀 10-Step Execution Roadmap (From Zero to Opening)
+        </h3>
+        <div id="plan-roadmap-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Vyapaar Vikash &copy; 2026 · Location Intelligence &amp; MSME Planning · <a href="dashboard.html">Dashboard</a> · <a href="login.html">Sign In</a></p>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Core Application Client -->
+  <script src="../js/app.js"></script>
+</body>
+</html>

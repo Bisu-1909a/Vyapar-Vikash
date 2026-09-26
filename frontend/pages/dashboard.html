@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Workspace Dashboard - Vyapaar Vikash</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .dash-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      color: white;
+      padding: 40px 0;
+    }
+    .saved-card {
+      background: var(--white);
+      border: var(--border);
+      border-radius: var(--radius-md);
+      padding: 0;
+      overflow: hidden;
+      transition: var(--transition);
+      margin-bottom: 16px;
+    }
+    .saved-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .saved-card-header {
+      padding: 16px 20px;
+      border-bottom: var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .saved-card-body {
+      padding: 16px 20px;
+    }
+    .saved-card-footer {
+      padding: 12px 20px;
+      background: var(--gray-100);
+      border-top: var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gray-100);
+      border: var(--border);
+      border-radius: 50px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--navy);
+    }
+    .stat-pill.green { background: rgba(40,167,69,0.1); border-color: rgba(40,167,69,0.25); color: var(--green); }
+    .stat-pill.orange { background: var(--orange-light); border-color: rgba(240,91,34,0.25); color: var(--orange); }
+    
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .dash-stat {
+      background: var(--white);
+      border: var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .dash-stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .dash-stat-label {
+      font-size: 0.78rem;
+      color: var(--gray-600);
+      margin-top: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .dash-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--gray-200);
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+    .dash-tab-btn {
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--gray-600);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .dash-tab-btn.active {
+      background: var(--navy);
+      color: var(--white);
+    }
+    .empty-state-box {
+      background: var(--white);
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-md);
+      padding: 48px 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 26, 43, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      max-width: 920px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.5rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--gray-600);
+    }
+    @media (max-width: 768px) {
+      .dashboard-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="logo"><div class="logo-icon">🌱</div>Vyapaar Vikash</a>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="analyze.html">Business Intelligence</a></li>
+        <li><a href="advisor.html">AI Advisor</a></li>
+        <li><a href="dashboard.html" class="active">Dashboard</a></li>
+      </ul>
+      <div class="d-flex gap-sm">
+        <a href="analyze.html" class="btn btn-primary btn-sm">+ New Analysis</a>
+        <a href="login.html" class="btn btn-outline btn-sm" id="btn-auth-action">Sign In</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== DASHBOARD HEADER ===== -->
+  <header class="dash-header">
+    <div class="container">
+      <div class="d-flex justify-between align-center" style="flex-wrap:wrap;gap:16px;">
+        <div>
+          <span style="color:var(--orange);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Entrepreneur Workspace</span>
+          <h1 style="font-size:2rem;font-weight:800;margin-top:6px;" id="dash-welcome-name">Welcome to Your Workspace 👋</h1>
+          <p style="color:rgba(255,255,255,0.78);margin-top:8px;font-size:0.95rem;" id="dash-welcome-sub">
+            Track your saved location analyses, Priority 1–5 ranked opportunities, and actionable business plans.
+          </p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <a href="analyze.html" class="btn btn-primary btn-lg">+ Start New Analysis</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container" style="padding: 36px 24px 60px;">
+
+    <!-- KPI Metric Cards -->
+    <div class="dashboard-stats">
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="stat-analyses-count" style="color:var(--orange);">0</div>
+        <div class="dash-stat-label">Saved Analyses</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="stat-opps-count" style="color:#2563eb;">0</div>
+        <div class="dash-stat-label">Saved Opportunities</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="stat-plans-count" style="color:var(--green);">0</div>
+        <div class="dash-stat-label">Business Blueprints</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num" id="stat-locations-count" style="color:#7c3aed;">0</div>
+        <div class="dash-stat-label">Bookmarked Areas</div>
+      </div>
+    </div>
+
+    <!-- Workspace Sub-Tabs -->
+    <div class="dash-tabs">
+      <button type="button" class="dash-tab-btn active" id="tab-btn-analyses" onclick="switchDashTab('analyses')">
+        📊 Certified Analyses (<span id="badge-count-analyses">0</span>)
+      </button>
+      <button type="button" class="dash-tab-btn" id="tab-btn-opps" onclick="switchDashTab('opps')">
+        🏆 Saved Opportunities (<span id="badge-count-opps">0</span>)
+      </button>
+      <button type="button" class="dash-tab-btn" id="tab-btn-plans" onclick="switchDashTab('plans')">
+        📋 Business Plans (<span id="badge-count-plans">0</span>)
+      </button>
+      <button type="button" class="dash-tab-btn" id="tab-btn-locations" onclick="switchDashTab('locations')">
+        📍 Saved Locations (<span id="badge-count-locations">0</span>)
+      </button>
+    </div>
+
+    <!-- TAB 1: SAVED ANALYSES -->
+    <div id="dash-panel-analyses">
+      <div id="analyses-list-container"></div>
+    </div>
+
+    <!-- TAB 2: SAVED OPPORTUNITIES -->
+    <div id="dash-panel-opps" style="display:none;">
+      <div id="opps-list-container"></div>
+    </div>
+
+    <!-- TAB 3: BUSINESS PLANS -->
+    <div id="dash-panel-plans" style="display:none;">
+      <div id="plans-list-container"></div>
+    </div>
+
+    <!-- TAB 4: SAVED LOCATIONS -->
+    <div id="dash-panel-locations" style="display:none;">
+      <div id="locations-list-container"></div>
+    </div>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: 14-SECTION BUSINESS PLAN BLUEPRINT -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="modal-business-plan">
+    <div class="modal-content" style="max-width:920px;">
+      <button type="button" class="modal-close" onclick="closeModal('modal-business-plan')">&times;</button>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div>
+          <span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;color:var(--orange);letter-spacing:1px;">Actionable Business Blueprint</span>
+          <h2 style="font-size:1.45rem;font-weight:800;color:var(--navy);margin-top:2px;" id="plan-modal-title">Business Plan</h2>
+          <p style="font-size:0.85rem;color:var(--gray-600);" id="plan-modal-sub">14 Structured Sections with Verified Data, Modeled Estimates, and AI Roadmaps</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" id="btn-copy-plan">📋 Copy Plan</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print / Export PDF</button>
+        </div>
+      </div>
+
+      <!-- Financial Snapshot Cards -->
+      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;margin-bottom:24px;background:var(--gray-100);padding:14px;border-radius:var(--radius-sm);border:var(--border);">
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--navy);" id="plan-fin-sales">₹0</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Monthly Sales</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--green);" id="plan-fin-profit">₹0</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Net Monthly Profit</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--orange);" id="plan-fin-margin">0%</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Gross Margin</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--navy);" id="plan-fin-be">-</div>
+          <div style="font-size:0.72rem;color:var(--gray-600);text-transform:uppercase;font-weight:600;">Break-Even Period</div>
+        </div>
+      </div>
+
+      <!-- 14 Sections Container -->
+      <div id="plan-sections-container" style="display:flex;flex-direction:column;gap:16px;"></div>
+
+      <!-- 10-Step Execution Roadmap -->
+      <div style="margin-top:28px;padding-top:20px;border-top:var(--border);">
+        <h3 style="font-size:1.15rem;font-weight:800;color:var(--navy);margin-bottom:14px;">
+          🚀 10-Step Execution Roadmap (From Zero to Opening)
+        </h3>
+        <div id="plan-roadmap-container" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Vyapaar Vikash &copy; 2026 · Location Intelligence &amp; MSME Planning · <a href="analyze.html">New Analysis</a></p>
+    </div>
+  </footer>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>
