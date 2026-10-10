@@ -61,17 +61,14 @@ def create_app() -> Flask:
     oauth.init_app(app)
     register_google(app)
 
-    # Allow requests from the frontend dev server and file:// origin
+    # Allow requests from any local development port (Live Server 5500, 5501, Vite, etc.) and file:// origin
+    import re
     frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
+    local_origin_regex = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
     CORS(app,
          origins=[
+             local_origin_regex,
              frontend_origin,
-             "http://localhost:3000",
-             "http://127.0.0.1:3000",
-             "http://localhost:8080",
-             "http://127.0.0.1:8080",
-             "http://localhost:5000",
-             "http://127.0.0.1:5000",
              "null"  # covers file:// origin
          ],
          supports_credentials=True)

@@ -618,22 +618,23 @@ def discover_opportunities():
     # If user is authenticated, persist to database
     user_id = session.get("user_id")
     loc_analysis_id = None
-    try:
-        loc_analysis_id = save_location_analysis(
-            user_id=user_id,
-            location_name=resolved_display,
-            formatted_address=resolved_display,
-            state=state,
-            district=district,
-            latitude=result["location"]["latitude"],
-            longitude=result["location"]["longitude"],
-            radius_km=radius_km,
-            opportunities=result["top_opportunities"],
-            market_signals=result["market_gap_matrix"],
-            confidence_score=result["top_opportunities"][0]["confidence_score"] if result["top_opportunities"] else 85.0
-        )
-    except Exception as e:
-        print(f"[AnalysisAPI] Note on save_location_analysis: {e}")
+    if user_id:
+        try:
+            loc_analysis_id = save_location_analysis(
+                user_id=user_id,
+                location_name=resolved_display,
+                formatted_address=resolved_display,
+                state=state,
+                district=district,
+                latitude=result["location"]["latitude"],
+                longitude=result["location"]["longitude"],
+                radius_km=radius_km,
+                opportunities=result["top_opportunities"],
+                market_signals=result["market_gap_matrix"],
+                confidence_score=result["top_opportunities"][0]["confidence_score"] if result["top_opportunities"] else 85.0
+            )
+        except Exception as e:
+            print(f"[AnalysisAPI] Note on save_location_analysis: {e}")
 
     result["status"] = "success"
     result["location_analysis_id"] = loc_analysis_id

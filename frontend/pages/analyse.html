@@ -404,7 +404,7 @@
         <div class="loc-search-row">
           <div class="loc-search-box">
             <label class="form-label" for="loc-search-input">City, Locality, Village, Landmark or PIN <span class="required">*</span></label>
-            <input type="text" id="loc-search-input" class="form-control" placeholder="E.g., Patia, Bhubaneswar or Varanasi or 751024" value="Patia, Bhubaneswar" autocomplete="off">
+            <input type="text" id="loc-search-input" class="form-control" placeholder="E.g., Patia, Bhubaneswar or Varanasi or 751024" autocomplete="off">
             <div id="loc-suggestions-box" class="loc-suggestions"></div>
           </div>
 
@@ -421,7 +421,7 @@
 
           <div style="flex:1;min-width:180px;">
             <label class="form-label" for="loc-budget-input">Investment Budget (Optional)</label>
-            <input type="number" id="loc-budget-input" class="form-control" placeholder="E.g., 300000" value="300000" min="0">
+            <input type="number" id="loc-budget-input" class="form-control" placeholder="E.g., 300000" min="0">
           </div>
         </div>
 
@@ -682,7 +682,7 @@
 
                 <div class="form-group mt-2">
                   <label class="form-label" for="business_name">Proposed Business Name <span class="required">*</span></label>
-                  <input type="text" id="business_name" name="business_name" class="form-control" placeholder="E.g., Ravi Kirana Store" value="My New Venture" required>
+                  <input type="text" id="business_name" name="business_name" class="form-control" placeholder="E.g., Ravi Kirana Store" required>
                 </div>
               </div>
             </div>
@@ -743,9 +743,9 @@
                   <div class="form-group">
                     <label class="form-label" for="district">District <span class="required">*</span></label>
                     <select id="district" name="district" class="form-control" required>
-                      <option value="Khordha" selected>Khordha</option>
+                      <option value="Khordha (Bhubaneswar)" selected>Khordha (Bhubaneswar)</option>
                     </select>
-                    <small id="district-hint" style="color:var(--gray-500);font-size:0.78rem;margin-top:4px;display:block;">← Select a State first to load districts</small>
+                    <small id="district-hint" style="color:var(--gray-500);font-size:0.78rem;margin-top:4px;display:block;">⏳ Loading districts…</small>
                   </div>
 
                 </div>
@@ -753,7 +753,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="form-label" for="village">Locality / Village / Town <span class="required">*</span></label>
-                    <input type="text" id="village" name="village" class="form-control" placeholder="E.g., Patia" value="Patia" required>
+                    <input type="text" id="village" name="village" class="form-control" placeholder="E.g., Patia" required>
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="area_type">Area Archetype <span class="required">*</span></label>
@@ -774,21 +774,21 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label class="form-label" for="total_investment">Total Planned Investment (₹) <span class="required">*</span></label>
-                    <input type="number" id="total_investment" name="total_investment" class="form-control" value="300000" min="1000" required>
+                    <input type="number" id="total_investment" name="total_investment" class="form-control" placeholder="E.g., 300000" min="1000" required>
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="own_capital">Your Own Capital (₹) <span class="required">*</span></label>
-                    <input type="number" id="own_capital" name="own_capital" class="form-control" value="150000" min="0" required>
+                    <input type="number" id="own_capital" name="own_capital" class="form-control" placeholder="E.g., 150000" min="0" required>
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label class="form-label" for="expected_monthly_sales">Expected Monthly Sales (₹)</label>
-                    <input type="number" id="expected_monthly_sales" name="expected_monthly_sales" class="form-control" value="65000" min="0">
+                    <input type="number" id="expected_monthly_sales" name="expected_monthly_sales" class="form-control" placeholder="E.g., 65000" min="0">
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="monthly_expenses">Monthly Operating Expenses (₹)</label>
-                    <input type="number" id="monthly_expenses" name="monthly_expenses" class="form-control" value="35000" min="0">
+                    <input type="number" id="monthly_expenses" name="monthly_expenses" class="form-control" placeholder="E.g., 35000" min="0">
                   </div>
                 </div>
               </div>
@@ -1048,6 +1048,8 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Resilient Offline Client Intelligence Engine -->
+  <script src="../js/resilient_engine.js"></script>
   <!-- Core Application Client -->
   <script src="../js/app.js"></script>
 

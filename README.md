@@ -54,6 +54,22 @@ cd backend
 python app.py
 ```
 
-- **Application URL:** [http://localhost:5000](http://localhost:5000)
-- **API Health Check:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
-- **Feasibility Analysis Tool:** [http://localhost:5000/pages/analyse.html](http://localhost:5000/pages/analyse.html)
+- **Local Application URL:** [http://localhost:5000](http://localhost:5000)
+- **Local Feasibility Tool:** [http://localhost:5000/pages/analyse.html](http://localhost:5000/pages/analyse.html)
+- **Local API Health Check:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
+
+---
+
+## 🌐 Public Live Shareable URLs (Worldwide Access)
+
+The platform is accessible worldwide over secure HTTPS via Cloudflare Tunnel:
+
+- **🏠 Public Application URL:** [https://many-hamilton-egg-birmingham.trycloudflare.com](https://many-hamilton-egg-birmingham.trycloudflare.com)
+- **📍 Feasibility & Opportunity Tool:** [https://many-hamilton-egg-birmingham.trycloudflare.com/pages/analyse.html](https://many-hamilton-egg-birmingham.trycloudflare.com/pages/analyse.html)
+- **📊 User Dashboard:** [https://many-hamilton-egg-birmingham.trycloudflare.com/pages/dashboard.html](https://many-hamilton-egg-birmingham.trycloudflare.com/pages/dashboard.html)
+- **🩺 Public Health Check:** [https://many-hamilton-egg-birmingham.trycloudflare.com/api/health](https://many-hamilton-egg-birmingham.trycloudflare.com/api/health)
+
+> **To launch a new public tunnel at any time:**
+> ```bash
+> .\cf.exe tunnel --url http://localhost:5000
+> ```

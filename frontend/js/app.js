@@ -3,30 +3,57 @@
  * Bridges all HTML pages to the certified SQLite backend API.
  */
 
-// Determine API origin dynamically
-const API_BASE = (window.location.port === '5000' || window.location.port === 5000)
-  ? window.location.origin
-  : 'http://localhost:5000';
+// Determine API origins dynamically with automatic IPv4/IPv6 probing
+function getApiBaseCandidates() {
+  if (window.location.port === '5000') {
+    return [window.location.origin];
+  }
+  if (window.location.protocol.startsWith('http') && 
+      !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    return [window.location.origin, 'http://127.0.0.1:5000', 'http://localhost:5000'];
+  }
+  // Local development (Live Server port 5500, 5501, 5502, Vite 5173, file://, etc.)
+  // 127.0.0.1 is placed first to avoid Windows IPv6 localhost ::1 resolution issues
+  return ['http://127.0.0.1:5000', 'http://localhost:5000'];
+}
 
-  
-// ── Shared API fetch wrapper ──────────────────────────
+let activeApiBase = null;
+
+// ── Shared API fetch wrapper with auto-failover ──────────────────────────
 async function apiCall(endpoint, options = {}) {
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
   const defaultHeaders = { 'Content-Type': 'application/json' };
   options.headers = { ...defaultHeaders, ...(options.headers || {}) };
   options.credentials = 'include';
 
-  try {
-    const res = await fetch(url, options);
+  if (endpoint.startsWith('http')) {
+    const res = await fetch(endpoint, options);
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || `HTTP error ${res.status}`);
-    }
+    if (!res.ok) throw new Error(data.error || `HTTP error ${res.status}`);
     return data;
-  } catch (err) {
-    console.warn(`[API] Error on ${endpoint}:`, err);
-    throw err;
   }
+
+  const candidates = activeApiBase ? [activeApiBase, ...getApiBaseCandidates().filter(b => b !== activeApiBase)] : getApiBaseCandidates();
+  let lastErr = null;
+
+  for (const base of candidates) {
+    try {
+      const url = `${base}${endpoint}`;
+      const res = await fetch(url, options);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP error ${res.status}`);
+      }
+      activeApiBase = base;
+      return data;
+    } catch (err) {
+      lastErr = err;
+      if (err.message && err.message.startsWith('HTTP error')) {
+        throw err;
+      }
+    }
+  }
+
+  throw lastErr || new Error('Backend server is currently offline');
 }
 
 // ── Currency & Metric formatters ─────────────────────
@@ -58,26 +85,48 @@ function setActiveAnalysisId(id) {
 
 // ── Navbar & Authentication Hydration ────────────────
 async function initNavbarAuth() {
+  const isRoot = !window.location.pathname.includes('/pages/');
+  const dashHref = isRoot ? 'pages/dashboard.html' : 'dashboard.html';
+  const loginHref = isRoot ? 'pages/login.html' : 'login.html';
+
   try {
     const me = await apiCall('/api/me');
     if (me && me.user) {
       const authLinks = document.querySelectorAll('.nav-links + .d-flex, .navbar-inner .d-flex');
       authLinks.forEach(container => {
+        const initial = (me.user.name || 'U').charAt(0).toUpperCase();
         container.innerHTML = `
-          <span style="font-size:0.85rem;color:var(--white);display:flex;align-items:center;gap:6px;">
-            👤 <strong>${me.user.name}</strong>
-          </span>
-          <a href="${API_BASE}/pages/dashboard.html" class="btn btn-primary btn-sm">Workspace</a>
-          <button id="btn-logout" class="btn btn-outline btn-sm" style="color:white;border-color:rgba(255,255,255,0.4);cursor:pointer;">Logout</button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:7px;background:var(--gray-100,#f8fafc);padding:4px 10px;border-radius:20px;border:1px solid var(--gray-200,#e2e8f0);">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--orange,#f05b22);color:#ffffff;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">${initial}</span>
+              <span style="font-size:0.85rem;font-weight:700;color:var(--navy,#0a1423);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${me.user.email || ''}">${me.user.name}</span>
+            </div>
+            <a href="${dashHref}" class="btn btn-outline btn-sm">Workspace</a>
+            <button type="button" class="btn btn-outline btn-sm btn-nav-logout" style="display:inline-flex;align-items:center;gap:5px;border-color:rgba(239,68,68,0.3);color:#ef4444;font-weight:600;cursor:pointer;background:rgba(239,68,68,0.06);">
+              <span>🚪</span> Logout
+            </button>
+          </div>
         `;
       });
-      const logoutBtn = document.getElementById('btn-logout');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-          await apiCall('/api/logout', { method: 'POST' }).catch(() => {});
-          window.location.href = `${API_BASE}/pages/login.html`;
+
+      document.querySelectorAll('.btn-nav-logout').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          btn.disabled = true;
+          btn.innerHTML = '<span>⏳</span> Logging out...';
+          try {
+            await apiCall('/api/logout', { method: 'POST' });
+          } catch (_) {}
+          try {
+            sessionStorage.clear();
+            localStorage.removeItem('vv_active_id');
+          } catch (_) {}
+          showToast('Logged out successfully');
+          setTimeout(() => {
+            window.location.href = loginHref;
+          }, 350);
         });
-      }
+      });
     }
   } catch (_) {
     // User is guest, keep default Login button
@@ -1314,7 +1363,31 @@ function initOpportunityExplorer() {
     }
   }
 
-  // 1. Radius Pill Selector
+  // Restore previous discovery if available in session
+  const cachedDiscovery = sessionStorage.getItem('vv_last_discovery');
+  if (cachedDiscovery && !qParam) {
+    try {
+      const parsed = JSON.parse(cachedDiscovery);
+      if (parsed && parsed.res && parsed.query) {
+        searchInput.value = parsed.query;
+        if (parsed.currentRadiusKm) {
+          currentRadiusKm = parsed.currentRadiusKm;
+          radiusPills.forEach(p => {
+            if (parseFloat(p.dataset.radius) === currentRadiusKm) p.classList.add('active');
+            else p.classList.remove('active');
+          });
+        }
+        if (parsed.activeGeocoded) activeGeocoded = parsed.activeGeocoded;
+        activeOpportunities = parsed.res.top_opportunities || [];
+        currentTopOpp = activeOpportunities[0] || null;
+        setTimeout(() => {
+          renderDiscoveryResults(parsed.res);
+          if (resultsBox) resultsBox.style.display = 'block';
+        }, 150);
+      }
+    } catch (_) {}
+  }
+
   radiusPills.forEach(pill => {
     pill.addEventListener('click', () => {
       radiusPills.forEach(p => p.classList.remove('active'));
@@ -1339,39 +1412,60 @@ function initOpportunityExplorer() {
       return;
     }
     geocodeTimeout = setTimeout(async () => {
+      const renderSuggestions = (candidates) => {
+        suggestionsBox.innerHTML = candidates.map(c => `
+          <div class="loc-sug-item" data-lat="${c.latitude}" data-lng="${c.longitude}" data-display="${c.display_name}" data-state="${c.state || ''}" data-dist="${c.district || ''}">
+            📍 <strong>${c.short_name}</strong> – <span style="color:var(--gray-600);font-size:0.8rem;">${c.display_name}</span>
+          </div>
+        `).join('');
+        suggestionsBox.style.display = 'block';
+
+        suggestionsBox.querySelectorAll('.loc-sug-item').forEach(item => {
+          item.addEventListener('click', () => {
+            searchInput.value = item.dataset.display;
+            activeGeocoded = {
+              latitude: parseFloat(item.dataset.lat),
+              longitude: parseFloat(item.dataset.lng),
+              display_name: item.dataset.display,
+              state: item.dataset.state,
+              district: item.dataset.dist
+            };
+            suggestionsBox.style.display = 'none';
+            runDiscovery();
+          });
+        });
+      };
+
       try {
         const res = await apiCall(`/api/location/geocode?q=${encodeURIComponent(q)}`);
         if (res && res.candidates && res.candidates.length > 0) {
-          suggestionsBox.innerHTML = res.candidates.map(c => `
-            <div class="loc-sug-item" data-lat="${c.latitude}" data-lng="${c.longitude}" data-display="${c.display_name}" data-state="${c.state || ''}" data-dist="${c.district || ''}">
-              📍 <strong>${c.short_name}</strong> – <span style="color:var(--gray-600);font-size:0.8rem;">${c.display_name}</span>
-            </div>
-          `).join('');
-          suggestionsBox.style.display = 'block';
-
-          // Wire click on suggestion items
-          suggestionsBox.querySelectorAll('.loc-sug-item').forEach(item => {
-            item.addEventListener('click', () => {
-              searchInput.value = item.dataset.display;
-              activeGeocoded = {
-                latitude: parseFloat(item.dataset.lat),
-                longitude: parseFloat(item.dataset.lng),
-                display_name: item.dataset.display,
-                state: item.dataset.state,
-                district: item.dataset.dist
-              };
-              suggestionsBox.style.display = 'none';
-              // Trigger automatic research
-              runDiscovery();
-            });
-          });
-        } else {
-          if (suggestionsBox) suggestionsBox.style.display = 'none';
+          renderSuggestions(res.candidates);
+          return;
         }
-      } catch (_) {
-        if (suggestionsBox) suggestionsBox.style.display = 'none';
+      } catch (_) {}
+
+      // Resilient client-side geocoding fallback
+      if (window.VyapaarResilientEngine && typeof window.VyapaarResilientEngine.geocode === 'function') {
+        try {
+          const candidates = await window.VyapaarResilientEngine.geocode(q);
+          if (candidates && candidates.length > 0) {
+            renderSuggestions(candidates);
+            return;
+          }
+        } catch (_) {}
       }
-    }, 350);
+
+      if (suggestionsBox) suggestionsBox.style.display = 'none';
+    }, 320);
+  });
+
+  // Submit on Enter key
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (suggestionsBox) suggestionsBox.style.display = 'none';
+      runDiscovery();
+    }
   });
 
   // Hide suggestions when clicking outside
@@ -1385,7 +1479,7 @@ function initOpportunityExplorer() {
   const runDiscovery = async () => {
     const query = searchInput.value.trim();
     if (!query) {
-      alert('Please enter a location, village, town, or PIN code to research.');
+      searchInput.focus();
       return;
     }
 
@@ -1425,34 +1519,49 @@ function initOpportunityExplorer() {
       district: activeGeocoded ? activeGeocoded.district : ''
     };
 
+    let res = null;
+    let usedResilient = false;
+
     try {
-      const res = await apiCall('/api/opportunities/discover', {
+      res = await apiCall('/api/opportunities/discover', {
         method: 'POST',
         body: JSON.stringify(payload)
       });
-
-      clearInterval(stepInterval);
-      if (progressBox) progressBox.style.display = 'none';
-      discoverBtn.disabled = false;
-      discoverBtn.innerHTML = '🔍 Research &amp; Rank Opportunities →';
-
-      if (res && res.top_opportunities && res.top_opportunities.length > 0) {
-        activeOpportunities = res.top_opportunities;
-        currentTopOpp = res.top_opportunities[0];
-        renderDiscoveryResults(res);
-        if (resultsBox) {
-          resultsBox.style.display = 'block';
-          resultsBox.scrollIntoView({ behavior: 'smooth' });
+    } catch (netErr) {
+      console.warn('[Discovery] Backend unreachable (' + (netErr.message || netErr) + '). Activating resilient local client engine...');
+      if (window.VyapaarResilientEngine && typeof window.VyapaarResilientEngine.evaluate === 'function') {
+        try {
+          res = await window.VyapaarResilientEngine.evaluate(payload);
+          usedResilient = true;
+        } catch (engineErr) {
+          console.error('[Discovery] Resilient client engine error:', engineErr);
         }
-      } else {
-        alert('Could not discover opportunities for this location. Please try refining the location query.');
       }
-    } catch (err) {
-      clearInterval(stepInterval);
-      if (progressBox) progressBox.style.display = 'none';
-      discoverBtn.disabled = false;
-      discoverBtn.innerHTML = '🔍 Research &amp; Rank Opportunities →';
-      alert('Error during location analysis: ' + (err.message || 'Server error'));
+    }
+
+    clearInterval(stepInterval);
+    if (progressBox) progressBox.style.display = 'none';
+    discoverBtn.disabled = false;
+    discoverBtn.innerHTML = '🔍 Research &amp; Rank Opportunities →';
+
+    if (res && res.top_opportunities && res.top_opportunities.length > 0) {
+      activeOpportunities = res.top_opportunities;
+      currentTopOpp = res.top_opportunities[0];
+      try {
+        sessionStorage.setItem('vv_last_discovery', JSON.stringify({ res, query, currentRadiusKm, activeGeocoded }));
+      } catch (_) {}
+      renderDiscoveryResults(res);
+      if (resultsBox) {
+        resultsBox.style.display = 'block';
+        resultsBox.scrollIntoView({ behavior: 'smooth' });
+      }
+      if (usedResilient) {
+        showToast(`✨ Market intelligence generated for ${res.location.name}! (High-speed resilient mode)`, 'info');
+      } else {
+        showToast(`📍 Opportunity analysis ready for ${res.location.name}!`, 'success');
+      }
+    } else {
+      showToast('Could not discover opportunities for this location. Please try refining the location query.', 'error');
     }
   };
 
@@ -1754,12 +1863,18 @@ function initOpportunityExplorer() {
       const plan = (res && res.business_plan) ? res.business_plan : res;
       if (plan && plan.sections && plan.sections.length > 0) {
         renderBusinessPlanModal(plan);
-      } else {
-        const titleEl2 = document.getElementById('plan-modal-title');
-        if (titleEl2) titleEl2.textContent = 'Business Plan Ready (check console for details)';
+        return;
       }
-    } catch (err) {
-      alert('Error generating plan: ' + err.message);
+    } catch (_) {
+      console.warn('[Plan] Backend unavailable, generating blueprint via resilient local engine...');
+      if (window.VyapaarResilientEngine && typeof window.VyapaarResilientEngine.generatePlan === 'function') {
+        const plan = window.VyapaarResilientEngine.generatePlan(opp, locationName, opp.min_investment, areaTypeSelect ? areaTypeSelect.value : 'semi_urban');
+        if (plan && plan.sections && plan.sections.length > 0) {
+          renderBusinessPlanModal(plan);
+          return;
+        }
+      }
+      showToast('Error generating plan. Please try again.', 'error');
       closeModal('modal-business-plan');
     }
   }
@@ -1947,7 +2062,18 @@ function initOpportunityExplorer() {
             if (scoreLabel) scoreLabel.innerHTML = `Simulated Score: <strong>${res.scenario_score}/100</strong> <span style="font-size:0.88rem;color:${res.score_difference<0?'#dc3545':'#059669'};">(${diffSign}${res.score_difference} pts)</span>`;
             if (impactLabel) impactLabel.textContent = res.impact_summary;
           }
-        } catch (_) {}
+        } catch (_) {
+          if (window.VyapaarResilientEngine && typeof window.VyapaarResilientEngine.simulateScenario === 'function') {
+            const res = window.VyapaarResilientEngine.simulateScenario(opp, loc, rVal, dVal, cVal);
+            if (res) {
+              const scoreLabel = document.getElementById('scen-score-label');
+              const impactLabel = document.getElementById('scen-impact-label');
+              const diffSign = res.score_difference >= 0 ? '+' : '';
+              if (scoreLabel) scoreLabel.innerHTML = `Simulated Score: <strong>${res.scenario_score}/100</strong> <span style="font-size:0.88rem;color:${res.score_difference<0?'#dc3545':'#059669'};">(${diffSign}${res.score_difference} pts)</span>`;
+              if (impactLabel) impactLabel.textContent = res.impact_summary;
+            }
+          }
+        }
       }, 250);
     };
 
@@ -1965,10 +2091,12 @@ function initOpportunityExplorer() {
     }
   }
 
-  // Run initial discovery automatically on page load so user sees instant value!
-  setTimeout(() => {
-    runDiscovery();
-  }, 100);
+  // Run initial discovery automatically on page load only if query is present
+  if (searchInput.value.trim()) {
+    setTimeout(() => {
+      runDiscovery();
+    }, 100);
+  }
 }
 
 
