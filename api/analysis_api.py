@@ -982,7 +982,7 @@ def api_dashboard_data():
 
     # Fetch user records or fallback to platform sample for guest
     analyses = get_all_analyses(user_id=user_id, limit=10) if user_id else _public_analyses(limit=5)
-    loc_analyses = get_all_location_analyses(user_id=user_id, limit=5)
+    loc_analyses = get_all_location_analyses(user_id=user_id, limit=5, public_only=not user_id)
     saved_opps = get_saved_opportunities(user_id) if user_id else []
     saved_locs = get_saved_locations(user_id) if user_id else []
     plans = get_business_plans(user_id) if user_id else []
