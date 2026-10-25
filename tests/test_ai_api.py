@@ -57,3 +57,14 @@ def test_rate_limit(client, monkeypatch):
     monkeypatch.setenv("AI_TOOLS_RATE_LIMIT_PER_MIN", "3")
     codes = [client.post("/api/tools/list_business_types", json={}).status_code for _ in range(4)]
     assert codes == [200, 200, 200, 429]
+
+
+def test_rate_limiter_forgets_idle_identities():
+    lim = ai_api._RateLimiter()
+    for i in range(50):
+        lim.allow(f"ip{i}", 5, window=60)
+    lim._last_sweep -= 120
+    for q in lim._hits.values():
+        q[-1] -= 120
+    lim.allow("fresh", 5, window=60)
+    assert list(lim._hits) == ["fresh"]

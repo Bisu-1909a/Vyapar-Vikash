@@ -175,10 +175,10 @@ def run_advisor(message: str, profile: Optional[dict], ctx: T.ToolContext,
             result = T.execute(c.function.name, c.function.arguments or "{}", ctx)
             tool_log.append({"tool": c.function.name, "ok": result["ok"],
                              **({} if result["ok"] else {"error_type": result.get("error_type")})})
+            content = json.dumps(result, ensure_ascii=False, default=str)[:MAX_TOOL_OUTPUT_CHARS]
             if result["ok"]:
-                tool_outputs.append(result["data"])
-            messages.append({"role": "tool", "tool_call_id": c.id,
-                             "content": json.dumps(result, ensure_ascii=False, default=str)[:MAX_TOOL_OUTPUT_CHARS]})
+                tool_outputs.append(content)  # verify only against what the model actually saw
+            messages.append({"role": "tool", "tool_call_id": c.id, "content": content})
 
     if not reply:
         reply = "I couldn't produce an answer from the available data. Please rephrase your question."

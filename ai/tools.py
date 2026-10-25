@@ -124,7 +124,7 @@ class DiscoverInput(_In):
     area_type: AreaType = AreaType("semi_urban")
     radius_km: float = Field(3.0, ge=0.5, le=50)
     investment_budget: float = Field(0, ge=0, le=MAX_INVESTMENT, description="Budget in INR; 0 = no budget filter.")
-    top_n: int = Field(5, ge=1, le=10)
+    top_n: int = Field(5, ge=1, le=5, description="How many ranked opportunities to return (engine ranks the top 5).")
 
 
 class ScenarioInput(_In):

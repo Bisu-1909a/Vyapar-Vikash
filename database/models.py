@@ -716,7 +716,7 @@ def get_all_schemes(category: str | None = None) -> list[dict]:
     """Retrieve all certified government schemes from database."""
     stmt = select(GovernmentScheme).where(GovernmentScheme.active == 1).order_by(GovernmentScheme.subsidy_pct.desc())
     if category:
-        stmt = stmt.where(GovernmentScheme.category.contains(category, autoescape=True))
+        stmt = stmt.where(_ilike_contains(GovernmentScheme.category, category))
     with session_scope() as s:
         return [g.to_dict() for g in s.scalars(stmt)]
 

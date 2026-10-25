@@ -44,3 +44,7 @@ def test_user_lookup_and_password_never_exposed(app):
 def test_search_treats_wildcards_literally(app):
     assert db.search_geo_locations("%") == []
     assert db.search_geo_locations("cutt")[0]["district"] == "Cuttack"
+
+
+def test_scheme_category_filter_is_case_insensitive(app):
+    assert db.get_all_schemes("credit") == db.get_all_schemes("Credit") != []

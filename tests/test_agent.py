@@ -85,3 +85,13 @@ def test_agent_stops_after_max_rounds(app, monkeypatch):
     out = agent.run_advisor("loop", None, T.ToolContext(), client=fake)
     assert out["reply"] == "Done."
     assert fake.requests[-1]["tool_choice"] == "none"
+
+
+def test_grounding_ignores_tool_output_the_model_never_saw(app, monkeypatch):
+    monkeypatch.setenv("LLM_API_KEY", "test")
+    monkeypatch.setattr(agent, "MAX_TOOL_OUTPUT_CHARS", 40)
+    args = {"business_type": "grocery", "state": "Odisha", "district": "Cuttack", "total_investment": 300000}
+    hidden = T.execute("run_feasibility_analysis", args, T.ToolContext())["data"]["financial"]["annual_profit"]
+    fake = FakeLLM([tool_call("run_feasibility_analysis", args), answer(f"Annual profit is ₹{hidden:,}.")])
+    out = agent.run_advisor("profit?", None, T.ToolContext(), client=fake)
+    assert not out["grounding"]["verified"]

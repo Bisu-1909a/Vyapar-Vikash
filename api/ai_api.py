@@ -42,10 +42,18 @@ class _RateLimiter:
     def __init__(self):
         self._hits = defaultdict(deque)
         self._lock = threading.Lock()
+        self._last_sweep = time.monotonic()
+
+    def _sweep(self, now: float, window: float) -> None:
+        for k in [k for k, q in self._hits.items() if not q or now - q[-1] > window]:
+            del self._hits[k]
+        self._last_sweep = now
 
     def allow(self, key: str, limit: int, window: float = 60.0) -> bool:
         now = time.monotonic()
         with self._lock:
+            if now - self._last_sweep > window:
+                self._sweep(now, window)
             q = self._hits[key]
             while q and now - q[0] > window:
                 q.popleft()
