@@ -192,6 +192,16 @@ function hydrateCommonResultsHeader(analysis) {
     `;
   }
 
+  // Static page templates were authored for the sample mobile shop; retitle them for this business
+  if (bizType !== 'mobile_shop') {
+    const label = meta.business_label || bizType.replace(/_/g, ' ');
+    document.querySelectorAll('.results-layout main h2, .results-layout main h3, .results-layout main .section-label').forEach(el => {
+      if (/mobile shop/i.test(el.textContent)) {
+        el.textContent = el.textContent.replace(/mobile shops?/gi, label).replace(/Gopalpur, Cuttack/g, fullLocDisplay);
+      }
+    });
+  }
+
   // Feasibility Score Sidebar
   const scoreVal = document.querySelector('.score-value');
   if (scoreVal) scoreVal.textContent = `${score} / 100`;
@@ -525,6 +535,18 @@ function hydrateResultsOverview(analysis) {
   const mkt = analysis.market || {};
   const fin = analysis.financial || {};
   const swot = analysis.swot || {};
+
+  const comp = analysis.competition || {};
+  const mktSummary = document.getElementById('overview-market-summary');
+  if (mktSummary && (mkt.local_demand || mkt.catchment_population)) {
+    mktSummary.textContent = [mkt.catchment_population && `${mkt.catchment_population} population in catchment.`, mkt.local_demand]
+      .filter(Boolean).join(' ');
+  }
+  const compSummary = document.getElementById('overview-competition-summary');
+  if (compSummary && (comp.competition_density || comp.total_competitors_estimate)) {
+    compSummary.textContent = [comp.competition_density && `${comp.competition_density} competition density.`,
+      comp.total_competitors_estimate && `Estimated competitors: ${comp.total_competitors_estimate}.`].filter(Boolean).join(' ');
+  }
 
   // Financial summary numbers on Overview card
   const finMonthlyProfit = document.getElementById('overview-monthly-profit');
@@ -1855,7 +1877,8 @@ function initOpportunityExplorer() {
           category_key: opp.category_key,
           location_name: locationName,
           investment: opp.min_investment,
-          area_type: areaTypeSelect ? areaTypeSelect.value : 'semi_urban'
+          area_type: areaTypeSelect ? areaTypeSelect.value : 'semi_urban',
+          save: false
         })
       });
 
@@ -1930,6 +1953,7 @@ function initOpportunityExplorer() {
               category_key: plan.category_key,
               location_name: plan.location_name,
               investment: plan.investment,
+              area_type: areaTypeSelect ? areaTypeSelect.value : 'semi_urban',
               save: true
             })
           });

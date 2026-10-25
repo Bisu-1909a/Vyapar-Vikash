@@ -54,6 +54,19 @@ from opportunity_engine import (
 analysis_bp = Blueprint("analysis", __name__)
 
 
+def _can_view(record: dict | None) -> bool:
+    """Records saved by a signed-in user are private to that user; guest/sample records (user_id NULL) are public."""
+    if not record:
+        return False
+    owner = record.get("user_id")
+    return owner is None or owner == session.get("user_id")
+
+
+def _public_analyses(limit: int) -> list[dict]:
+    rows = get_all_analyses(user_id=None, limit=limit)
+    return [r for r in rows if _can_view(get_analysis_record(r["id"]))]
+
+
 
 # ─────────────────────────────────────────────
 #  POST /api/analysis – Run & Certify Analysis
@@ -131,7 +144,7 @@ def create_analysis():
 def list_analyses():
     """Returns stored analyses (for logged in user or recent platform records)."""
     user_id = session.get("user_id")
-    records = get_all_analyses(user_id=user_id, limit=50)
+    records = get_all_analyses(user_id=user_id, limit=50) if user_id else _public_analyses(limit=50)
     return jsonify({
         "status": "success",
         "count": len(records),
@@ -147,10 +160,10 @@ def list_analyses():
 def get_latest_analysis():
     """Retrieve the most recent certified analysis record."""
     user_id = session.get("user_id")
-    records = get_all_analyses(user_id=user_id, limit=1)
+    records = get_all_analyses(user_id=user_id, limit=1) if user_id else []
     if not records:
-        # Fall back to platform records
-        records = get_all_analyses(user_id=None, limit=1)
+        # Fall back to public sample/guest records
+        records = _public_analyses(limit=20)[:1]
     if not records:
         return jsonify({"error": "No analyses found."}), 404
     latest_id = records[0]["id"]
@@ -169,7 +182,7 @@ def get_latest_analysis():
 def get_analysis(analysis_id: int):
     """Retrieve full certified analysis report with all 6 modules and validation hash."""
     record = get_analysis_record(analysis_id)
-    if not record:
+    if not _can_view(record):
         return jsonify({"error": f"Analysis record with ID #{analysis_id} not found."}), 404
 
     return jsonify({
@@ -184,8 +197,10 @@ def get_analysis(analysis_id: int):
 
 @analysis_bp.route("/api/analysis/<int:analysis_id>", methods=["DELETE"])
 def remove_analysis(analysis_id: int):
-    """Deletes an analysis record."""
+    """Deletes an analysis record owned by the signed-in user."""
     user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
     success = delete_analysis(analysis_id, user_id=user_id)
     if not success:
         return jsonify({"error": "Record not found or not permitted to delete."}), 404
@@ -682,15 +697,17 @@ def list_location_analyses():
 def get_single_location_analysis(loc_analysis_id: int):
     """Retrieve details for a saved location analysis run."""
     analysis = get_location_analysis_by_id(loc_analysis_id)
-    if not analysis:
+    if not _can_view(analysis):
         return jsonify({"error": f"Location analysis #{loc_analysis_id} not found."}), 404
     return jsonify({"status": "success", "analysis": analysis}), 200
 
 
 @analysis_bp.route("/api/location/analysis/<int:loc_analysis_id>", methods=["DELETE"])
 def remove_location_analysis(loc_analysis_id: int):
-    """Delete a location analysis."""
+    """Delete a location analysis owned by the signed-in user."""
     user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
     success = delete_location_analysis(loc_analysis_id, user_id=user_id)
     if not success:
         return jsonify({"error": "Record not found or not permitted to delete."}), 404
@@ -712,7 +729,7 @@ def api_generate_plan():
     location_name = (body.get("location_name") or body.get("location") or "Selected Location").strip()
     investment = float(body.get("investment") or body.get("total_investment") or 250000.0)
     area_type = (body.get("area_type") or "semi_urban").strip().lower()
-    save_to_db = body.get("save", True)
+    save_to_db = body.get("save") is True
 
     plan = generate_business_plan(
         category_key=category_key,
@@ -958,7 +975,7 @@ def api_dashboard_data():
             }
 
     # Fetch user records or fallback to platform sample for guest
-    analyses = get_all_analyses(user_id=user_id, limit=10) if user_id else get_all_analyses(user_id=None, limit=5)
+    analyses = get_all_analyses(user_id=user_id, limit=10) if user_id else _public_analyses(limit=5)
     loc_analyses = get_all_location_analyses(user_id=user_id, limit=5)
     saved_opps = get_saved_opportunities(user_id) if user_id else []
     saved_locs = get_saved_locations(user_id) if user_id else []
