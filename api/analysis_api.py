@@ -63,8 +63,7 @@ def _can_view(record: dict | None) -> bool:
 
 
 def _public_analyses(limit: int) -> list[dict]:
-    rows = get_all_analyses(user_id=None, limit=limit)
-    return [r for r in rows if _can_view(get_analysis_record(r["id"]))]
+    return get_all_analyses(user_id=None, limit=limit, public_only=True)
 
 
 
@@ -275,6 +274,12 @@ def ai_advisor():
     body = request.get_json(silent=True) or {}
     message = (body.get("message") or "").strip().lower()
     analysis_id = body.get("analysis_id")
+    if analysis_id not in (None, ""):
+        try:
+            if not _can_view(get_analysis_record(int(analysis_id))):
+                return jsonify({"status": "error", "error": "Analysis not found."}), 404
+        except (TypeError, ValueError):
+            return jsonify({"status": "error", "error": "analysis_id must be an integer."}), 400
     biz_type = body.get("business_type")
     biz_name = body.get("business_name")
     district = body.get("district")
@@ -685,7 +690,7 @@ def list_location_analyses():
     """List recent location analyses."""
     user_id = session.get("user_id")
     limit = int(request.args.get("limit", 20))
-    analyses = get_all_location_analyses(user_id=user_id, limit=limit)
+    analyses = get_all_location_analyses(user_id=user_id, limit=limit, public_only=not user_id)
     return jsonify({
         "status": "success",
         "count": len(analyses),
@@ -966,6 +971,7 @@ def api_dashboard_data():
     if user_id:
         u = get_user_by_id(user_id)
         if u:
+            u = dict(u)
             user_info = {
                 "id": u["id"],
                 "name": u["name"],

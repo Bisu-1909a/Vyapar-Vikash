@@ -907,7 +907,7 @@ def get_certified_report_by_certificate_no(cert_no: str) -> dict | None:
         return dict(row) if row else None
 
 
-def get_all_analyses(user_id: int | None = None, limit: int = 50) -> list[dict]:
+def get_all_analyses(user_id: int | None = None, limit: int = 50, public_only: bool = False) -> list[dict]:
     """Get list of recent analyses for dashboard display."""
     with get_db() as conn:
         if user_id:
@@ -929,8 +929,9 @@ def get_all_analyses(user_id: int | None = None, limit: int = 50) -> list[dict]:
                        r.status AS report_status, r.certified_at
                 FROM analyses a
                 LEFT JOIN certified_reports r ON a.id = r.analysis_id
+                {where}
                 ORDER BY a.id DESC LIMIT ?
-            """, (limit,)).fetchall()
+            """.format(where="WHERE a.user_id IS NULL" if public_only else ""), (limit,)).fetchall()
         return [dict(r) for r in rows]
 
 
@@ -1161,11 +1162,13 @@ def get_location_analysis_by_id(loc_analysis_id: int) -> dict | None:
         return d
 
 
-def get_all_location_analyses(user_id: int | None = None, limit: int = 20) -> list[dict]:
+def get_all_location_analyses(user_id: int | None = None, limit: int = 20, public_only: bool = False) -> list[dict]:
     """Retrieve recent location analyses."""
     with get_db() as conn:
         if user_id:
             rows = conn.execute("SELECT * FROM location_analyses WHERE user_id = ? ORDER BY created_at DESC LIMIT ?", (user_id, limit)).fetchall()
+        elif public_only:
+            rows = conn.execute("SELECT * FROM location_analyses WHERE user_id IS NULL ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
         else:
             rows = conn.execute("SELECT * FROM location_analyses ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
         result = []
