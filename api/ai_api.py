@@ -66,11 +66,27 @@ class _RateLimiter:
 _limiter = _RateLimiter()
 
 
+def _is_trusted_proxy(addr: str | None) -> bool:
+    """TRUSTED_PROXIES: comma-separated IPs/CIDRs (default: loopback, e.g. a local cloudflared tunnel)."""
+    import ipaddress
+    try:
+        ip = ipaddress.ip_address(addr or "")
+    except ValueError:
+        return False
+    for net in (os.getenv("TRUSTED_PROXIES") or "127.0.0.1/32,::1/128").split(","):
+        try:
+            if net.strip() and ip in ipaddress.ip_network(net.strip(), strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 def _client_ip() -> str:
     # Behind a reverse proxy / tunnel (e.g. cloudflared) every request comes from 127.0.0.1;
     # set TRUST_PROXY=1 there so anonymous users get separate rate-limit buckets.
-    # Only honour forwarded headers from a local proxy, so direct clients can't spoof them.
-    if os.getenv("TRUST_PROXY") == "1" and request.remote_addr in ("127.0.0.1", "::1"):
+    # Only honour forwarded headers from trusted proxies, so direct clients can't spoof them.
+    if os.getenv("TRUST_PROXY") == "1" and _is_trusted_proxy(request.remote_addr):
         fwd = request.headers.get("CF-Connecting-IP") or (request.headers.get("X-Forwarded-For") or "").split(",")[0]
         if fwd.strip():
             return fwd.strip()

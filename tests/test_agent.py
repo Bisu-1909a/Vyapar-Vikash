@@ -109,3 +109,8 @@ def test_grounding_treats_dash_between_numbers_as_range():
     sources = [{"margin": "8 – 12%"}, {"margin2": "8-12%"}]
     assert not agent.check_grounding("Margin is -12%.", sources)["verified"]
     assert agent.check_grounding("Margin is 8 – 12%.", sources)["verified"]
+
+
+def test_grounding_negative_on_new_line_is_not_a_range():
+    sources = [{"revenue": 45000, "profit": 12000}]
+    assert not agent.check_grounding("Revenue ₹45,000\n-₹12,000 loss", sources)["verified"]

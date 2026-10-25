@@ -97,3 +97,12 @@ def test_forwarded_ip_ignored_from_non_local_peer(client, monkeypatch):
     call = lambda ip: client.post("/api/tools/list_business_types", json={}, headers={"X-Forwarded-For": ip},
                                   environ_base={"REMOTE_ADDR": "203.0.113.9"}).status_code
     assert [call("1.1.1.1"), call("2.2.2.2")] == [200, 429]
+
+
+def test_configured_trusted_proxy_network(client, monkeypatch):
+    monkeypatch.setenv("AI_TOOLS_RATE_LIMIT_PER_MIN", "1")
+    monkeypatch.setenv("TRUST_PROXY", "1")
+    monkeypatch.setenv("TRUSTED_PROXIES", "10.0.0.0/24")
+    call = lambda ip: client.post("/api/tools/list_business_types", json={}, headers={"X-Forwarded-For": ip},
+                                  environ_base={"REMOTE_ADDR": "10.0.0.5"}).status_code
+    assert [call("1.1.1.1"), call("2.2.2.2")] == [200, 200]
