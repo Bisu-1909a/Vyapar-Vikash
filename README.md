@@ -73,3 +73,66 @@ The platform is accessible worldwide over secure HTTPS via Cloudflare Tunnel:
 > ```bash
 > .\cf.exe tunnel --url http://localhost:5000
 > ```
+
+---
+
+## 🤖 AI Layer: LLM + Tool-Calling over Flask APIs + PostgreSQL
+
+The AI Advisor is an LLM agent that can only answer through **typed tools**. Each tool wraps one of the app's existing deterministic engines or one of its ORM queries, so every figure it gives traces back to the analysis engine or the database.
+
+```
+Browser ──► POST /api/ai/advisor ──► LLM (OpenAI-compatible, tool calling)
+                                       │  calls tools by name with JSON args
+                                       ▼
+                         ai/tools.py  (Pydantic-validated, user-scoped, audited)
+                                       │
+                 analysis_engine / opportunity_engine / database.models (SQLAlchemy ORM)
+                                       │
+                               PostgreSQL  (SQLite fallback for local dev)
+```
+
+### Tools
+`GET /api/tools` lists every tool with its JSON input schema. `POST /api/tools/<name>` runs a tool directly with a JSON body.
+
+| Tool | What it does |
+|---|---|
+| `run_feasibility_analysis` | Feasibility score, revenue/profit, break-even, ROI, EMI, market, competition, matched schemes |
+| `get_analysis` / `list_my_analyses` | Saved certified analyses (only the signed-in user's own records, plus public samples) |
+| `discover_opportunities` | Ranks business categories for a location |
+| `simulate_scenario` | What-if: rent %, demand %, new competitors |
+| `generate_business_plan` | Plan outline with financial summary and roadmap |
+| `list_government_schemes` / `get_sector_benchmark` | Scheme and benchmark tables |
+| `get_location_intelligence` / `search_locations` | Micro-area economics and location search |
+| `list_my_business_plans` / `list_my_saved_opportunities` | The signed-in user's saved items |
+| `list_business_types` | Valid keys for the other tools |
+
+### Accuracy & safety
+- **No raw SQL.** All data access goes through SQLAlchemy models (`database/orm.py`), and schema changes go through Alembic (`migrations/`).
+- **Validated inputs.** Pydantic models use enums for business types and area types, numeric bounds, and reject unknown fields.
+- **User isolation.** The user id comes from the Flask session, never from the LLM. `list_my_*` tools require sign-in, and another user's analysis returns `forbidden`.
+- **Read-only.** Tools can't create, change or delete business data.
+- **Grounding check.** Each figure in an LLM reply is checked against the tool outputs and the user's own inputs. Figures that can't be traced are returned in `grounding.unverified_numbers`, and the reply gets a caution line.
+- **Audit log.** Each tool call is written to the `ai_tool_calls` table (tool, args, ok/error, duration, user, source). Users can view their own calls at `GET /api/ai/tool_calls`.
+- **Rate limits.** Per user/IP limits (`AI_ADVISOR_RATE_LIMIT_PER_MIN`, `AI_TOOLS_RATE_LIMIT_PER_MIN`), plus a cap on tool-call rounds per question.
+- **Graceful fallback.** With no `LLM_API_KEY`, or if the provider errors, the advisor falls back to the previous rule-based replies.
+
+### Setup
+```bash
+pip install -r backend/requirements.txt
+cp backend/.env.example backend/.env      # set SECRET_KEY, DATABASE_URL, LLM_* (see comments in the file)
+
+# Local PostgreSQL (optional; without DATABASE_URL the app uses database/db.sqlite3)
+docker run -d --name vyapar-pg -e POSTGRES_USER=vyapar -e POSTGRES_PASSWORD=change-me -e POSTGRES_DB=vyapar -p 5432:5432 postgres:16
+
+python run.py          # runs Alembic migrations + seeds reference data on start
+```
+Any OpenAI-compatible provider with tool calling works: OpenAI, Groq, Gemini (OpenAI endpoint), OpenRouter, or Ollama. Set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`.
+
+Schema change workflow: edit `database/orm.py`, run `alembic revision --autogenerate -m "..."`, then `alembic upgrade head`.
+
+### Tests
+```bash
+pip install -r requirements-dev.txt
+pytest                                                                     # SQLite
+TEST_DATABASE_URL=postgresql://vyapar:change-me@localhost:5432/vyapar_test pytest   # PostgreSQL
+```

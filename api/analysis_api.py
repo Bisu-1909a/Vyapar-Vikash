@@ -251,9 +251,9 @@ def get_stats():
 #  POST /api/ai/advisor – AI Business Advisory
 # ─────────────────────────────────────────────
 
-@analysis_bp.route("/api/ai/advisor", methods=["POST"])
 def ai_advisor():
     """
+    Rule-based fallback for POST /api/ai/advisor (route lives in api/ai_api.py; used when no LLM is configured).
     Intelligent Rural Business Advisor responding with practical,
     actionable insights based on user prompt and full business context.
     """

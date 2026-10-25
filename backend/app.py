@@ -34,24 +34,33 @@ else:
 # ── Local modules (database, api, backend) ────
 try:
     from database.models import init_db
+    from database.orm import get_engine
 except ImportError:
     from models import init_db
+    from orm import get_engine
 
 try:
     from api.auth import auth_bp, bcrypt
     from api.google_oauth import google_bp, oauth, register_google
     from api.analysis_api import analysis_bp
+    from api.ai_api import ai_bp
 except ImportError:
     from auth import auth_bp, bcrypt
     from google_oauth import google_bp, oauth, register_google
     from analysis_api import analysis_bp
+    from ai_api import ai_bp
 
 
 def create_app() -> Flask:
     app = Flask(__name__)
 
     # ── Core config ───────────────────────────
-    app.config["SECRET_KEY"]         = os.getenv("SECRET_KEY", "dev-secret-change-me!")
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        import secrets
+        secret_key = secrets.token_hex(32)
+        print("[WARN] SECRET_KEY is not set; using a random key (sessions reset on restart). Set it in backend/.env.")
+    app.config["SECRET_KEY"]         = secret_key
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
@@ -77,6 +86,7 @@ def create_app() -> Flask:
     app.register_blueprint(auth_bp)
     app.register_blueprint(google_bp)
     app.register_blueprint(analysis_bp)
+    app.register_blueprint(ai_bp)
 
     # ── Frontend Static File Serving ──────────
     FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
@@ -115,7 +125,7 @@ def create_app() -> Flask:
         return jsonify({
             "status": "ok",
             "message": "Vyapaar Vikash API is running",
-            "database": "certified_sqlite"
+            "database": get_engine().dialect.name
         }), 200
 
     # ── Global error handlers ─────────────────
@@ -151,4 +161,4 @@ if __name__ == "__main__":
     print("  API: http://localhost:5000")
     print("  Health: http://localhost:5000/api/health")
     print("="*55 + "\n")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=os.getenv("FLASK_DEBUG") == "1")
