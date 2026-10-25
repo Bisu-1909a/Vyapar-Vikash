@@ -68,3 +68,24 @@ def test_rate_limiter_forgets_idle_identities():
         q[-1] -= 120
     lim.allow("fresh", 5, window=60)
     assert list(lim._hits) == ["fresh"]
+
+
+def test_advisor_rejects_other_users_analysis(user_client, app):
+    from analysis_engine import run_full_analysis
+    from database import models as db
+    other = db.create_user("Other", "other-adv@example.com", "h")
+    form = {"business_type": "grocery", "state": "Odisha", "district": "Cuttack", "total_investment": 200000.0}
+    aid = db.save_complete_analysis(form, run_full_analysis(form), user_id=other)["analysis_id"]
+    r = user_client.post("/api/ai/advisor", json={"message": "profit?", "analysis_id": aid})
+    assert r.status_code == 403
+    assert user_client.post("/api/ai/advisor", json={"message": "x", "analysis_id": "abc"}).status_code == 400
+
+
+def test_rate_limit_uses_forwarded_ip_only_when_trusted(client, monkeypatch):
+    monkeypatch.setenv("AI_TOOLS_RATE_LIMIT_PER_MIN", "1")
+    call = lambda ip: client.post("/api/tools/list_business_types", json={},
+                                  headers={"X-Forwarded-For": ip}).status_code
+    assert [call("1.1.1.1"), call("2.2.2.2")] == [200, 429]
+    monkeypatch.setenv("TRUST_PROXY", "1")
+    ai_api._limiter._hits.clear()
+    assert [call("1.1.1.1"), call("2.2.2.2"), call("1.1.1.1")] == [200, 200, 429]

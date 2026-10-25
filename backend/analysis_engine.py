@@ -921,7 +921,7 @@ def _local_demand_text(bdata, area_type, district, village="", block=""):
 
 def _financial_analysis(bdata, investment, own_capital, loan_amount, expected_sales, monthly_expenses, biz_name, village="", block="", area_type="rural", state="", district=""):
     investment = float(investment) if investment else 100000.0
-    own_capital = float(own_capital) if own_capital else (investment * 0.4)
+    own_capital = float(own_capital) if own_capital is not None else (investment * 0.4)
     loan_amount = float(loan_amount) if loan_amount else max(0.0, investment - own_capital)
     sector_margin = (bdata.get("avg_margin_pct", 25)) / 100.0
 

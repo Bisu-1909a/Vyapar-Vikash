@@ -12,7 +12,7 @@ import sys
 import json
 import hashlib
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from contextlib import contextmanager
 
 from sqlalchemy import delete, func, or_, select
@@ -50,6 +50,11 @@ def get_db():
     """Transactional ORM session (kept under the old name for compatibility)."""
     with session_scope() as s:
         yield s
+
+
+def _utcnow() -> datetime:
+    """Naive UTC, matching the CURRENT_TIMESTAMP column defaults."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def _loads(raw, default):
@@ -378,7 +383,7 @@ def update_last_login(user_id: int):
     with session_scope() as s:
         u = s.get(User, user_id)
         if u:
-            u.last_login_at = datetime.now()
+            u.last_login_at = _utcnow()
 
 
 def update_user_profile(user_id: int, name: str, avatar_url: str | None = None) -> dict | None:
@@ -389,7 +394,7 @@ def update_user_profile(user_id: int, name: str, avatar_url: str | None = None) 
             u.name = name.strip()
             if avatar_url is not None:
                 u.avatar_url = avatar_url
-            u.updated_at = datetime.now()
+            u.updated_at = _utcnow()
     return get_user_by_id(user_id)
 
 
@@ -400,7 +405,7 @@ def create_user(name: str, email: str, password_hash: str | None = None,
     with session_scope() as s:
         u = User(name=name, email=email.lower().strip(), password=password_hash,
                  google_id=google_id, avatar_url=avatar_url, role=role,
-                 last_login_at=datetime.now())
+                 last_login_at=_utcnow())
         s.add(u)
         s.flush()
         return u.id
@@ -409,7 +414,7 @@ def create_user(name: str, email: str, password_hash: str | None = None,
 def upsert_google_user(google_id: str, email: str, name: str,
                        avatar_url: str | None) -> dict:
     """Handle Google authentication: link existing email or create new account."""
-    now = datetime.now()
+    now = _utcnow()
     with session_scope() as s:
         u = s.scalar(select(User).where(User.google_id == google_id))
         if not u:
@@ -860,7 +865,7 @@ def save_business_plan(user_id: int, title: str, category_key: str,
                 p.title, p.category_key, p.location_name = title, category_key, location_name
                 p.investment, p.executive_summary = investment, executive_summary
                 p.plan_json, p.roadmap_json = json.dumps(plan_data), json.dumps(roadmap or [])
-                p.updated_at = datetime.now()
+                p.updated_at = _utcnow()
             return plan_id
         p = BusinessPlan(user_id=user_id, analysis_id=analysis_id, title=title, category_key=category_key,
                          location_name=location_name, investment=investment,

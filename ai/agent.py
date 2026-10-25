@@ -64,17 +64,19 @@ def _make_client(cfg: dict):
 #  Grounding check
 # ─────────────────────────────────────────────
 
-_NUM_RE = re.compile(r"(?<![\w.])(\d{1,3}(?:,\d{2,3})+|\d+)(?:\.(\d+))?\s*(lakhs?|lacs?|crores?|cr|k)?", re.I)
+_NUM_RE = re.compile(r"(?<![\w.])([-−–]\s*)?(?:₹\s*)?(\d{1,3}(?:,\d{2,3})+|\d+)(?:\.(\d+))?\s*(lakhs?|lacs?|crores?|cr|k|%)?", re.I)
 _SCALE = {"lakh": 1e5, "lakhs": 1e5, "lac": 1e5, "lacs": 1e5, "crore": 1e7, "crores": 1e7, "cr": 1e7, "k": 1e3}
 
 
 def _numbers_in_text(text: str) -> list[tuple[str, float]]:
     out = []
     for m in _NUM_RE.finditer(text or ""):
-        whole, frac, unit = m.group(1), m.group(2), (m.group(3) or "").lower()
+        sign, whole, frac, unit = m.group(1), m.group(2), m.group(3), (m.group(4) or "").lower()
         val = float(whole.replace(",", "") + (f".{frac}" if frac else ""))
         if unit in _SCALE:
             val *= _SCALE[unit]
+        if sign:
+            val = -val
         out.append((m.group(0).strip(), val))
     return out
 
@@ -95,7 +97,7 @@ def _numbers_in_obj(obj: Any, acc: set[float]) -> None:
 
 
 def _is_trivial(raw: str, val: float) -> bool:
-    if val < 10:
+    if abs(val) < 10 and val.is_integer() and "%" not in raw and "₹" not in raw:
         return True  # list markers, small counts, "3 km" style context
     if "," not in raw and val.is_integer() and 1990 <= val <= 2100:
         return True  # years
@@ -114,7 +116,7 @@ def check_grounding(reply: str, sources: list[Any]) -> dict:
     for raw, val in _numbers_in_text(reply):
         if _is_trivial(raw, val):
             continue
-        tol = max(0.51, abs(val) * 0.01)  # 1% to allow rounding in prose
+        tol = max(0.051 if not val.is_integer() else 0.51, abs(val) * 0.01)  # 1% to allow rounding in prose
         if not any(abs(val - k) <= tol for k in derived):
             unverified.append(raw)
     return {"verified": not unverified, "unverified_numbers": sorted(set(unverified))}

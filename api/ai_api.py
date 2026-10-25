@@ -22,7 +22,7 @@ for _p in [_BASE_DIR, os.path.join(_BASE_DIR, "database"), os.path.join(_BASE_DI
 from flask import Blueprint, jsonify, request, session
 
 from ai import agent, tools
-from database.models import get_tool_calls
+from database.models import get_analysis_owner, get_tool_calls
 
 try:
     from api.analysis_api import ai_advisor as rule_based_advisor
@@ -66,8 +66,18 @@ class _RateLimiter:
 _limiter = _RateLimiter()
 
 
+def _client_ip() -> str:
+    # Behind a reverse proxy / tunnel (e.g. cloudflared) every request comes from 127.0.0.1;
+    # set TRUST_PROXY=1 there so anonymous users get separate rate-limit buckets.
+    if os.getenv("TRUST_PROXY") == "1":
+        fwd = request.headers.get("CF-Connecting-IP") or (request.headers.get("X-Forwarded-For") or "").split(",")[0]
+        if fwd.strip():
+            return fwd.strip()
+    return request.remote_addr or "unknown"
+
+
 def _rate_limited(bucket: str, env_var: str, default: int):
-    who = f"u{session['user_id']}" if session.get("user_id") else f"ip{request.remote_addr}"
+    who = f"u{session['user_id']}" if session.get("user_id") else f"ip{_client_ip()}"
     if not _limiter.allow(f"{bucket}:{who}", int(os.getenv(env_var) or default)):
         return jsonify({"status": "error", "error": "Too many requests. Please wait a minute and try again."}), 429
     return None
@@ -104,6 +114,15 @@ def advisor():
     message = (body.get("message") or "").strip()
     if not message:
         return jsonify({"status": "error", "error": "Message is required."}), 400
+
+    analysis_id = body.get("analysis_id")
+    if analysis_id not in (None, ""):
+        try:
+            exists, owner = get_analysis_owner(int(analysis_id))
+        except (TypeError, ValueError):
+            return jsonify({"status": "error", "error": "analysis_id must be an integer."}), 400
+        if exists and owner is not None and owner != session.get("user_id"):
+            return jsonify({"status": "error", "error": "This analysis belongs to another user."}), 403
 
     if not agent.is_configured():
         resp, status = rule_based_advisor()

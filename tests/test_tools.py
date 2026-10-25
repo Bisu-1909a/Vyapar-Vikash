@@ -75,3 +75,10 @@ def test_read_only_tools_cover_main_engines(app):
     assert plan["ok"] and plan["data"]["financial_summary"]
     intel = T.execute("get_location_intelligence", {"state": "Odisha", "district": "Cuttack"}, ctx)
     assert intel["ok"] and intel["data"]["district"] == "Cuttack"
+
+
+def test_zero_own_capital_is_fully_financed(app):
+    args = {"business_type": "grocery", "state": "Odisha", "district": "Cuttack", "total_investment": 300000,
+            "own_capital": 0}
+    fin = T.execute("run_feasibility_analysis", args, T.ToolContext())["data"]["financial"]
+    assert (fin["own_capital"], fin["loan_amount"]) == (0, 300000)

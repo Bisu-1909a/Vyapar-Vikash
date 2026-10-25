@@ -32,7 +32,7 @@ def test_grounding_flags_invented_numbers():
     ok = agent.check_grounding("Profit is ₹45,000 a month (₹5.4 lakh a year), ROI 180%.", sources)
     assert ok["verified"], ok
     bad = agent.check_grounding("Profit is ₹45,000 a month and rent is ₹12,500.", sources)
-    assert bad == {"verified": False, "unverified_numbers": ["12,500"]}
+    assert bad == {"verified": False, "unverified_numbers": ["₹12,500"]}
 
 
 def test_agent_runs_tool_and_grounds_reply(app, monkeypatch):
@@ -73,7 +73,7 @@ def test_agent_appends_caution_for_unverified_figures(app, monkeypatch):
     monkeypatch.setenv("LLM_API_KEY", "test")
     fake = FakeLLM([answer("You will earn ₹99,999 per month.")])
     out = agent.run_advisor("How much will I earn?", None, T.ToolContext(), client=fake)
-    assert out["grounding"]["unverified_numbers"] == ["99,999"]
+    assert out["grounding"]["unverified_numbers"] == ["₹99,999"]
     assert "⚠️" in out["reply"]
 
 
@@ -95,3 +95,11 @@ def test_grounding_ignores_tool_output_the_model_never_saw(app, monkeypatch):
     fake = FakeLLM([tool_call("run_feasibility_analysis", args), answer(f"Annual profit is ₹{hidden:,}.")])
     out = agent.run_advisor("profit?", None, T.ToolContext(), client=fake)
     assert not out["grounding"]["verified"]
+
+
+def test_grounding_checks_sign_and_small_rates():
+    sources = [{"monthly_profit": 45000, "interest_rate_pct": 8.5}]
+    assert not agent.check_grounding("You will make a loss of -₹45,000.", sources)["verified"]
+    assert agent.check_grounding("Interest is 8.5% per year.", sources)["verified"]
+    assert agent.check_grounding("Interest is 7.25% per year.", sources)["unverified_numbers"] == ["7.25%"]
+    assert agent.check_grounding("Follow these 3 steps.", sources)["verified"]
