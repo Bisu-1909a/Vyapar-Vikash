@@ -259,7 +259,7 @@ async function loadCurrentAnalysis() {
     console.warn('[App] Could not load analysis record from database, falling back.', err);
     if (activeId) {
       // Report is missing or belongs to someone else: don't show the static sample as if it were theirs
-      const main = document.querySelector('.results-layout main') || document.querySelector('main');
+      const main = document.querySelector('.results-layout main');
       if (main) {
         main.innerHTML = '<div class="card" style="padding:32px;text-align:center;"><h2 style="color:var(--navy);margin-bottom:8px;">Report unavailable</h2>' +
           '<p style="color:var(--gray-600);">This report does not exist or you do not have access to it. Sign in with the account that created it, or run a new analysis.</p>' +
