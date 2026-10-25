@@ -76,7 +76,8 @@ def _numbers_in_text(text: str) -> list[tuple[str, float]]:
         if unit in _SCALE:
             val *= _SCALE[unit]
         prev = text[:m.start()].rsplit("\n", 1)[-1].rstrip()  # same line only
-        if sign and not (prev and (prev[-1].isdigit() or prev[-1] == "%")):
+        is_minus = bool(sign) and sign == sign.rstrip()  # "- ₹12,000" (dash + space) is a bullet, "-₹12,000" a minus
+        if is_minus and not (prev and (prev[-1].isdigit() or prev[-1] == "%")):
             val = -val  # a dash right after another number is a range separator, not a minus sign
         out.append((m.group(0).strip(), val))
     return out
