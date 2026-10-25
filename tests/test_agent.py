@@ -119,3 +119,9 @@ def test_grounding_negative_on_new_line_is_not_a_range():
 def test_grounding_bullet_dash_is_not_minus():
     sources = [{"revenue": 45000, "rent": 12000}]
     assert agent.check_grounding("Revenue ₹45,000\n- ₹12,000 rent", sources)["verified"]
+
+
+def test_grounding_spaced_minus_in_prose_is_negative():
+    sources = [{"profit": 12000}]
+    assert not agent.check_grounding("The loss is - ₹12,000.", sources)["verified"]
+    assert agent.check_grounding("Summary:\n  - ₹12,000 profit", sources)["verified"]
