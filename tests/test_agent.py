@@ -103,3 +103,9 @@ def test_grounding_checks_sign_and_small_rates():
     assert agent.check_grounding("Interest is 8.5% per year.", sources)["verified"]
     assert agent.check_grounding("Interest is 7.25% per year.", sources)["unverified_numbers"] == ["7.25%"]
     assert agent.check_grounding("Follow these 3 steps.", sources)["verified"]
+
+
+def test_grounding_treats_dash_between_numbers_as_range():
+    sources = [{"margin": "8 – 12%"}, {"margin2": "8-12%"}]
+    assert not agent.check_grounding("Margin is -12%.", sources)["verified"]
+    assert agent.check_grounding("Margin is 8 – 12%.", sources)["verified"]

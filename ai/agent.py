@@ -75,8 +75,9 @@ def _numbers_in_text(text: str) -> list[tuple[str, float]]:
         val = float(whole.replace(",", "") + (f".{frac}" if frac else ""))
         if unit in _SCALE:
             val *= _SCALE[unit]
-        if sign:
-            val = -val
+        prev = (text[:m.start()]).rstrip()
+        if sign and not (prev and (prev[-1].isdigit() or prev[-1] == "%")):
+            val = -val  # a dash right after another number is a range separator, not a minus sign
         out.append((m.group(0).strip(), val))
     return out
 

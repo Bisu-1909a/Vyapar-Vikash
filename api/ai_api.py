@@ -69,7 +69,8 @@ _limiter = _RateLimiter()
 def _client_ip() -> str:
     # Behind a reverse proxy / tunnel (e.g. cloudflared) every request comes from 127.0.0.1;
     # set TRUST_PROXY=1 there so anonymous users get separate rate-limit buckets.
-    if os.getenv("TRUST_PROXY") == "1":
+    # Only honour forwarded headers from a local proxy, so direct clients can't spoof them.
+    if os.getenv("TRUST_PROXY") == "1" and request.remote_addr in ("127.0.0.1", "::1"):
         fwd = request.headers.get("CF-Connecting-IP") or (request.headers.get("X-Forwarded-For") or "").split(",")[0]
         if fwd.strip():
             return fwd.strip()

@@ -89,3 +89,11 @@ def test_rate_limit_uses_forwarded_ip_only_when_trusted(client, monkeypatch):
     monkeypatch.setenv("TRUST_PROXY", "1")
     ai_api._limiter._hits.clear()
     assert [call("1.1.1.1"), call("2.2.2.2"), call("1.1.1.1")] == [200, 200, 429]
+
+
+def test_forwarded_ip_ignored_from_non_local_peer(client, monkeypatch):
+    monkeypatch.setenv("AI_TOOLS_RATE_LIMIT_PER_MIN", "1")
+    monkeypatch.setenv("TRUST_PROXY", "1")
+    call = lambda ip: client.post("/api/tools/list_business_types", json={}, headers={"X-Forwarded-For": ip},
+                                  environ_base={"REMOTE_ADDR": "203.0.113.9"}).status_code
+    assert [call("1.1.1.1"), call("2.2.2.2")] == [200, 429]

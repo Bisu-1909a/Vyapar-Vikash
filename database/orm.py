@@ -58,7 +58,8 @@ def get_engine() -> Engine:
             _engine = create_engine(url, connect_args={"check_same_thread": False})
             event.listen(_engine, "connect", _sqlite_pragmas)
         else:
-            _engine = create_engine(url, pool_pre_ping=True)
+            # UTC sessions so CURRENT_TIMESTAMP defaults match the naive-UTC values the app writes
+            _engine = create_engine(url, pool_pre_ping=True, connect_args={"options": "-c timezone=UTC"})
         _SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False)
     return _engine
 
